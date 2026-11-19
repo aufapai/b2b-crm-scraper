@@ -1,162 +1,292 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HOTS Trading CRM - Standalone Chrome Dashboard</title>
+  <title>B2B CRM Dashboard — HOTS Trading &amp; General B2B</title>
   <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
   <div class="app">
-    <!-- Top Header -->
+    <!-- Top Navigation Bar -->
     <header class="topbar">
       <div class="brand">
-        <div class="brand-badge">HOTS</div>
+        <div class="brand-mark" id="dashBrandMark">HT</div>
         <div>
-          <h1>HOTS Trading CRM</h1>
-          <p class="subtitle">Standalone Chrome Dashboard • 1-Klik WhatsApp • Auto-Sync Google Sheet</p>
+          <h1 id="dashBrandTitle">HOTS Trading CRM</h1>
+          <p class="subtitle" id="dashBrandSub">Standalone B2B Lead Workspace • WhatsApp &amp; Gmail Outreach</p>
         </div>
       </div>
 
       <div class="top-actions">
-        <button id="profileBadge" class="profile-badge" title="Klik untuk ganti akun Google atau atur koneksi Google Sheet">
+        <button id="profileBadge" class="profile-badge" title="Klik untuk atur Akun Google &amp; Koneksi Google Sheet">
           <div class="avatar-wrap">
-            <span id="profileInitial" class="avatar-circle">G</span>
+            <span id="profileInitial" class="avatar-circle">A</span>
             <span id="profileDot" class="status-dot dot-warn"></span>
           </div>
           <div class="profile-info">
-            <span id="profileEmailLabel" class="profile-email">Belum ada akun</span>
-            <span id="profileConnStatus" class="profile-status">GSheet belum terhubung</span>
+            <span id="profileEmailLabel" class="profile-email">Mendeteksi akun...</span>
+            <span id="profileConnStatus" class="profile-status">Klik atur Google Sheet</span>
           </div>
         </button>
-        <button id="btnOpenGSheet" class="btn btn-emerald">📊 Buka GSheet</button>
-        <button id="btnSyncGSheet" class="btn btn-blue">🔄 Sync ke Sheet</button>
-        <button id="btnExportCsv" class="btn btn-secondary">⬇️ Export CSV</button>
-        <label class="btn btn-secondary" style="cursor:pointer;">
-          ⬆️ Import CSV
+
+        <button id="btnOpenGSheet" class="btn btn-outline-green">Buka GSheet</button>
+        <button id="btnSyncGSheet" class="btn btn-navy">Sync ke Sheet</button>
+        <button id="btnOpenKeywords" class="btn btn-accent">Cari Lead (Maps/LI)</button>
+        <button id="btnExportCsv" class="btn btn-outline">Export CSV</button>
+        <label class="btn btn-outline" style="cursor:pointer;">
+          Import CSV
           <input id="inputImportCsv" type="file" accept=".csv" style="display:none;">
         </label>
-        <button id="btnOpenSettings" class="btn btn-secondary">⚙️</button>
+        <button id="btnOpenOnboarding" class="btn btn-outline" title="Setup Bisnis, Segmen &amp; Rekomendasi Keyword">Setup Profil</button>
+        <button id="btnToggleTheme" class="btn btn-outline" title="Ganti Tema Terang / Gelap">Tema</button>
       </div>
     </header>
 
-    <!-- KPI Cards -->
-    <section class="kpi-row">
-      <div class="kpi-card">
+    <!-- KPI Summary Strip -->
+    <section class="kpi-strip">
+      <div class="kpi-item">
         <span class="kpi-label">Total Leads</span>
-        <span class="kpi-val" id="kpiTotal">0</span>
+        <strong class="kpi-val" id="kpiTotal">0</strong>
       </div>
-      <div class="kpi-card kpi-green">
+      <div class="kpi-item">
         <span class="kpi-label">WA Valid Siap Chat</span>
-        <span class="kpi-val" id="kpiWa">0</span>
+        <strong class="kpi-val kpi-green" id="kpiWa">0</strong>
       </div>
-      <div class="kpi-card kpi-blue">
-        <span class="kpi-label">Jadwal 3 Hari (H1–H3)</span>
-        <span class="kpi-val" id="kpiOutreach">0</span>
+      <div class="kpi-item">
+        <span class="kpi-label">Email Terdata</span>
+        <strong class="kpi-val kpi-navy" id="kpiEmail">0</strong>
       </div>
-      <div class="kpi-card kpi-purple">
-        <span class="kpi-label">Sudah Dihubungi / Terkirim</span>
-        <span class="kpi-val" id="kpiContacted">0</span>
+      <div class="kpi-item">
+        <span class="kpi-label">Sudah Dihubungi</span>
+        <strong class="kpi-val kpi-amber" id="kpiContacted">0</strong>
       </div>
     </section>
 
-    <!-- Quick Batch Pills -->
-    <section class="pill-bar" id="batchPills">
-      <button class="filter-pill active" data-batch="">Semua Data</button>
-      <button class="filter-pill" data-batch="H1 Kam 19 Nov">🔥 H1 Kam 19 Nov</button>
-      <button class="filter-pill" data-batch="H2 Jum 20 Nov">🏪 H2 Jum 20 Nov</button>
-      <button class="filter-pill" data-batch="H3 Sen 23 Nov">🗺️ H3 Sen 23 Nov</button>
-      <button class="filter-pill" data-batch="Partner Portal">🏢 Partner Portal (12)</button>
-      <button class="filter-pill" data-batch="Extension Scrape">🕷️ Hasil Extension</button>
+    <!-- Dynamic Batch & Filter Bar -->
+    <section class="workspace-controls">
+      <div class="batch-tabs" id="batchPills">
+        <button class="batch-tab active" data-batch="">Semua Data</button>
+        <button class="batch-tab" data-batch="H1 Kam 19 Nov">H1 Kam 19 Nov</button>
+        <button class="batch-tab" data-batch="H2 Jum 20 Nov">H2 Jum 20 Nov</button>
+        <button class="batch-tab" data-batch="H3 Sen 23 Nov">H3 Sen 23 Nov</button>
+        <button class="batch-tab" data-batch="Partner Portal">Partner Portal</button>
+        <button class="batch-tab" data-batch="Google Maps Auto">Google Maps Auto</button>
+        <button class="batch-tab" data-batch="Extension Scrape">Extension Scrape</button>
+      </div>
+
+      <div class="filter-row">
+        <input id="searchInput" type="text" class="search-input" placeholder="Cari perusahaan, PIC, email, alamat, kota, nomor HP...">
+        <select id="filterSegment"><option value="">Semua Segmen</option></select>
+        <select id="filterStatus">
+          <option value="">Semua Status</option>
+          <option value="Belum Dihubungi">Belum Dihubungi</option>
+          <option value="Terkirim">Terkirim</option>
+          <option value="Dibalas">Dibalas</option>
+          <option value="Butuh jelas">Butuh jelas</option>
+          <option value="SPH dikirim">SPH dikirim</option>
+          <option value="Tidak tertarik">Tidak tertarik</option>
+        </select>
+        <label class="chk-inline">
+          <input type="checkbox" id="chkWaOnly"> Hanya WA Valid
+        </label>
+        <label class="chk-inline">
+          <input type="checkbox" id="chkEmailOnly"> Punya Email
+        </label>
+      </div>
     </section>
 
-    <!-- Search, Filters & Active WA Template Selector -->
-    <section class="toolbar">
-      <input id="searchInput" type="text" class="search-input" placeholder="Cari perusahaan, PIC, kota, nomor HP, catatan...">
-      <select id="filterSegment">
-        <option value="">Semua Segmen</option>
-        <option value="Segmen A: Reseller & Toko K3">Reseller &amp; Toko K3</option>
-        <option value="Segmen A: Partner Portal & BUMN">Partner Portal &amp; BUMN</option>
-        <option value="Segmen A: Buyer Korporat">Buyer Korporat</option>
-        <option value="Segmen B: Manufaktur Sepatu">Manufaktur Sepatu</option>
-        <option value="Riset Pasar SEA">Riset Pasar SEA</option>
-      </select>
-      <select id="filterStatus">
-        <option value="">Semua Status</option>
-        <option value="Belum Dihubungi">Belum Dihubungi</option>
-        <option value="Terkirim">Terkirim</option>
-        <option value="Dibalas">Dibalas</option>
-        <option value="Butuh jelas">Butuh jelas</option>
-        <option value="SPH dikirim">SPH dikirim</option>
-        <option value="Tidak tertarik">Tidak tertarik</option>
-      </select>
-      <select id="activeTemplate" title="Template pesan untuk tombol 1-Klik Buka WA">
-        <option value="T1">Template: T1 (Izin Dulu - Tanpa Katalog)</option>
-        <option value="T2">Template: T2 (Follow Up Kontak Hangat)</option>
-        <option value="T3">Template: T3 (Khusus GiziNow)</option>
-        <option value="MFG">Template: Kemitraan Manufaktur Sepatu</option>
-      </select>
-      <label class="wa-toggle">
-        <input type="checkbox" id="chkWaOnly"> Hanya WA Valid
-      </label>
-    </section>
-
-    <div class="status-strip">
+    <div class="meta-bar">
       <span id="resultSummary">Memuat data...</span>
-      <span id="syncStatusText" class="muted"></span>
+      <span id="syncStatusText"></span>
     </div>
 
-    <!-- Leads Cards / Table Container -->
-    <main id="leadsContainer" class="leads-list"></main>
+    <!-- Leads List -->
+    <main id="leadsContainer" class="leads-grid"></main>
 
     <!-- Pagination -->
     <footer class="pagination">
-      <button id="btnPrev" class="btn btn-secondary">← Sebelumnya</button>
+      <button id="btnPrev" class="btn btn-outline">Sebelumnya</button>
       <span id="pageInfo">Halaman 1</span>
-      <button id="btnNext" class="btn btn-secondary">Berikutnya →</button>
+      <button id="btnNext" class="btn btn-outline">Berikutnya</button>
     </footer>
   </div>
 
-  <!-- Modal Settings -->
+  <!-- MODAL 1: HUBUNGI VIA (WHATSAPP & DRAFT GMAIL TERHUBUNG) -->
+  <div id="modalOutreach" class="modal hidden">
+    <div class="modal-card modal-lg">
+      <div class="modal-head">
+        <div>
+          <h3 id="outreachCompanyTitle">Hubungi Lead</h3>
+          <p class="modal-sub" id="outreachContactMeta"></p>
+        </div>
+        <button class="btn-close" data-close="modalOutreach">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="channel-switch">
+          <button id="chBtnWa" class="ch-btn active" type="button">WhatsApp Web</button>
+          <button id="chBtnGmail" class="ch-btn" type="button">Draft Gmail (Akun Terhubung)</button>
+        </div>
+
+        <div class="form-row">
+          <label for="outreachTemplateSel">Pilih Template Pesan</label>
+          <select id="outreachTemplateSel">
+            <option value="T1">T1 — Pesan Pertama Izin (Tanpa Katalog &amp; Harga)</option>
+            <option value="T2">T2 — Follow Up Kontak Hangat</option>
+            <option value="T3">T3 — Penawaran Institusi / SPPG / Korporat</option>
+            <option value="EMAIL_B2B">Email Resmi B2B — Penawaran &amp; Minta Jadwal</option>
+            <option value="MFG">Kemitraan Manufaktur / Distribusi Ekspor</option>
+          </select>
+        </div>
+
+        <div id="outreachSubjectRow" class="form-row hidden">
+          <label for="outreachSubject">Subjek Email (Gmail)</label>
+          <input id="outreachSubject" type="text">
+        </div>
+
+        <div class="form-row">
+          <label for="outreachMessage">Draft Pesan (Bisa diedit sebelum dikirim)</label>
+          <textarea id="outreachMessage" rows="6"></textarea>
+        </div>
+
+        <div id="outreachWarningBox" class="warning-banner hidden"></div>
+
+        <div class="modal-actions">
+          <button id="btnSendViaWa" class="btn btn-green">Buka WhatsApp Web</button>
+          <button id="btnSendViaGmail" class="btn btn-navy">Buka Draft Gmail (Akun Terhubung)</button>
+          <button id="btnCopyDraft" class="btn btn-outline">Salin Teks</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ONBOARDING SETUP WIZARD (PROFIL BISNIS, SEGMEN CUSTOM & SMART KEYWORDS) -->
+  <div id="modalOnboarding" class="modal hidden">
+    <div class="modal-card modal-lg">
+      <div class="modal-head">
+        <div>
+          <h3>Setup Profil Bisnis &amp; Segmen B2B</h3>
+          <p class="modal-sub">Sesuaikan CRM untuk HOTS Trading atau bisnis B2B lainnya — segmen &amp; keyword otomatis menyesuaikan.</p>
+        </div>
+        <button class="btn-close" data-close="modalOnboarding">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="two-col">
+          <div class="form-row">
+            <label for="obCompanyBrand">Nama Perusahaan / Brand</label>
+            <input id="obCompanyBrand" type="text" placeholder="contoh: HOTS Trading (PT Indo Sukses Semesta)">
+          </div>
+          <div class="form-row">
+            <label for="obSenderName">Nama Pengirim (PIC Sales / BD)</label>
+            <input id="obSenderName" type="text" placeholder="contoh: Aufa">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="obIndustry">Fokus Industri B2B (untuk Rekomendasi Keyword Cerdas)</label>
+          <select id="obIndustry"></select>
+        </div>
+
+        <div class="form-row">
+          <label for="obRegions">Target Daerah / Negara (pisahkan dengan koma)</label>
+          <input id="obRegions" type="text" placeholder="contoh: Jakarta, Surabaya, Balikpapan, Bangkok, HCMC">
+        </div>
+
+        <div class="form-row">
+          <div class="label-inline">
+            <label for="obSegments">Daftar Segmen Target (1 baris = 1 segmen, bebas ubah)</label>
+            <button id="btnLoadDefaultSegments" type="button" class="text-btn">Isi Saran Industri</button>
+          </div>
+          <textarea id="obSegments" rows="4" placeholder="Segmen A: Reseller & Toko K3&#10;Segmen A: Buyer Korporat&#10;..."></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btnSaveOnboarding" class="btn btn-accent">Simpan Profil &amp; Terapkan</button>
+          <button class="btn btn-outline" data-close="modalOnboarding">Nanti Saja</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: SMART KEYWORD RECOMMENDER (GOOGLE MAPS & LINKEDIN LAUNCHER) -->
+  <div id="modalKeywords" class="modal hidden">
+    <div class="modal-card modal-lg">
+      <div class="modal-head">
+        <div>
+          <h3>Rekomendasi Pencarian Lead B2B (Google Maps &amp; LinkedIn)</h3>
+          <p class="modal-sub">Klik keyword untuk langsung buka Google Maps → lalu klik <b>Auto-Scroll &amp; Scrape Maps</b> di ikon extension.</p>
+        </div>
+        <button class="btn-close" data-close="modalKeywords">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="two-col">
+          <div class="form-row">
+            <label for="dashKwIndustry">Industri</label>
+            <select id="dashKwIndustry"></select>
+          </div>
+          <div class="form-row">
+            <label for="dashKwRegions">Daerah / Negara</label>
+            <input id="dashKwRegions" type="text" placeholder="Jakarta, Surabaya, Thailand, Vietnam">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="dashKwTopic">Kata Kunci Tambahan (Opsional)</label>
+          <input id="dashKwTopic" type="text" placeholder="contoh: safety boots distributor, kontraktor tambang">
+        </div>
+        <div id="dashKeywordGrid" class="kw-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: PENGATURAN GOOGLE SHEET & AKUN TERHUBUNG -->
   <div id="modalSettings" class="modal hidden">
     <div class="modal-card">
       <div class="modal-head">
-        <h3>⚙️ Pengaturan Google Sheet &amp; Data CRM</h3>
-        <button id="btnCloseSettings" class="btn-close">&times;</button>
+        <div>
+          <h3>Pengaturan Akun Google &amp; Sync Sheet</h3>
+          <p class="modal-sub">Menghubungkan Dashboard, Draft Gmail, dan Google Sheet dengan akun Google pilihanmu.</p>
+        </div>
+        <button class="btn-close" data-close="modalSettings">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="detected-account-box">
+        <div class="detected-box">
           <div>
-            <div style="font-size:11px; color:#94a3b8;">Akun Profil Chrome Terdeteksi:</div>
-            <div id="detectedChromeEmail" style="font-weight:700; color:#34d399; font-size:12.5px;">Mendeteksi...</div>
+            <div class="detected-label">Akun Profil Chrome Terdeteksi:</div>
+            <div id="detectedChromeEmail" class="detected-email">Mendeteksi...</div>
           </div>
-          <button id="btnUseDetectedAccount" class="btn btn-secondary btn-sm">Pakai Akun Ini</button>
+          <button id="btnUseDetectedAccount" class="btn btn-outline btn-sm" type="button">Pakai Akun Ini</button>
         </div>
-        <div class="form-group">
-          <label>URL Google Sheet Tracker (Google Drive)</label>
+
+        <div class="form-row">
+          <label for="setGSheetUrl">URL Google Sheet Tracker (Google Drive)</label>
           <input id="setGSheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../edit">
         </div>
-        <div class="form-group">
-          <label>Akun Google / AI yang Terhubung (Email atau Index 0, 1, 2)</label>
-          <input id="setAuthUser" type="text" placeholder="contoh: aufa@hots.co.id atau 0">
+
+        <div class="form-row">
+          <label for="setAuthUser">Akun Google Terhubung (Email atau Index 0, 1, 2)</label>
+          <input id="setAuthUser" type="text" placeholder="contoh: aufahots@gmail.com">
         </div>
-        <div class="form-group">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <label>Google Apps Script Webhook URL (Auto-Sync Sheet)</label>
-            <button id="btnCopyGsScript" class="btn btn-blue btn-sm" type="button">📋 1-Klik Copy Kode .gs</button>
+
+        <div class="form-row">
+          <div class="label-inline">
+            <label for="setWebhookUrl">Google Apps Script Webhook URL (v1.1 Bebas #ERROR!)</label>
+            <button id="btnCopyGsScript" class="text-btn" type="button">Copy Kode .gs v1.1</button>
           </div>
           <input id="setWebhookUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec">
-          <small style="color:#94a3b8; font-size:11px;">Cukup sekali: Klik <b>Copy Kode .gs</b> → di Google Sheet buka <b>Extensions → Apps Script</b> → Paste → <b>Deploy Web App (Anyone)</b> → tempel URL-nya di sini.</small>
+          <small class="hint">Update kode Apps Script ke v1.1 agar kolom Link Buka WA bebas #ERROR! dan kolom Alamat ikut masuk.</small>
         </div>
+
         <div class="modal-actions">
-          <button id="btnSaveSettings" class="btn btn-primary">💾 Simpan Pengaturan</button>
-          <button id="btnResetSeed" class="btn btn-danger" title="Muat ulang data awal lokal">🔄 Reset Data Awal</button>
+          <button id="btnSaveSettings" class="btn btn-navy">Simpan Pengaturan</button>
+          <button id="btnResetSeed" class="btn btn-danger">Reset Data Awal</button>
         </div>
       </div>
     </div>
   </div>
 
   <div id="toast" class="toast"></div>
+  <script src="b2b_keywords.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>

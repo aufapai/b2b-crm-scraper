@@ -1,33 +1,42 @@
-const TEMPLATES = {
-  T1: (lead) =>
-    "Selamat pagi Bapak/Ibu, saya Aufa dari HOTS Trading (PT Indo Sukses Semesta), distributor resmi AP Boots. Kami menyuplai boot PVC dan safety boot untuk toko dan supplier K3. Apakah saya boleh mengirimkan katalog dan skema harga untuk toko Bapak/Ibu?",
-  T2: (lead) => {
-    const pic = lead.contact_person && lead.contact_person !== "Bapak/Ibu" ? lead.contact_person : lead.company_name;
-    return `Selamat pagi Bapak/Ibu ${pic}, saya Aufa dari HOTS Trading. Menindaklanjuti komunikasi kita sebelumnya soal AP Boots, apakah ada kebutuhan stok untuk Desember atau awal tahun depan? Jika ada, boleh saya tahu model dan perkiraan jumlahnya agar bisa saya siapkan penawarannya?`;
-  },
-  T3: () =>
-    "Selamat pagi Pak Denny, saya Aufa dari HOTS Trading. Menindaklanjuti penawaran AP Chef dan AP Clog bulan Juni, apakah evaluasi kebutuhan SPPG sudah berjalan? Kami siap mengirimkan penawaran yang diperbarui sesuai jumlah unit yang dikelola.",
-  MFG: (lead) =>
-    `Selamat pagi Bapak/Ibu (${lead.company_name}), salam kenal. Saya Aufa dari PT Indo Sukses Semesta (HOTS Trading). Kami mengapresiasi kapasitas produksi ${lead.products || "alas kaki"} di ${lead.location || "Indonesia"}. Apakah saya boleh mengirimkan info singkat program kemitraan distribusi B2B kami?`
+const DEFAULT_PROFILE = {
+  companyBrand: "HOTS Trading (PT Indo Sukses Semesta)",
+  senderName: "Aufa",
+  industryId: "safety_apd",
+  regions: "Jakarta, Surabaya, Balikpapan, Bangkok, HCMC",
+  segments: [
+    "Segmen A: Reseller & Toko K3",
+    "Segmen A: Partner Portal & BUMN",
+    "Segmen A: Buyer Korporat",
+    "Segmen B: Manufaktur Sepatu",
+    "Riset Pasar SEA"
+  ],
+  onboarded: false
 };
 
 let allLeads = [];
 let filteredLeads = [];
-let settings = { gsheetUrl: "", authUser: "0", webhookUrl: "" };
+let profile = { ...DEFAULT_PROFILE };
+let settings = { gsheetUrl: "", authUser: "", webhookUrl: "", theme: "light" };
+let detectedEmail = "";
+let activeOutreachLead = null;
+let activeOutreachChannel = "wa";
+
 let filterState = {
   batch: "",
   search: "",
   segment: "",
   status: "",
   waOnly: false,
+  emailOnly: false,
   page: 1,
   pageSize: 30
 };
 
+// --- Helpers ---
 function showToast(msg, isError = false) {
   const t = document.getElementById("toast");
   t.textContent = msg;
-  t.style.borderColor = isError ? "#ef4444" : "#10b981";
+  t.style.borderLeftColor = isError ? "#dc2626" : "#d97706";
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 3200);
 }
@@ -44,13 +53,22 @@ function buildAuthUserUrl(rawUrl, authUser) {
   if (!rawUrl) return "";
   try {
     const u = new URL(rawUrl);
-    if (authUser && authUser.trim() !== "") {
-      u.searchParams.set("authuser", authUser.trim());
-    }
+    if (authUser && authUser.trim() !== "") u.searchParams.set("authuser", authUser.trim());
     return u.toString();
   } catch {
     return rawUrl;
   }
+}
+
+function buildGmailComposeUrl(to, subject, body, authUser) {
+  const u = new URL("https://mail.google.com/mail/");
+  u.searchParams.set("view", "cm");
+  u.searchParams.set("fs", "1");
+  if (to) u.searchParams.set("to", to);
+  if (subject) u.searchParams.set("su", subject);
+  if (body) u.searchParams.set("body", body);
+  if (authUser && authUser.trim() !== "") u.searchParams.set("authuser", authUser.trim());
+  return u.toString();
 }
 
 function extractMobileWA(raw) {
@@ -66,24 +84,40 @@ function extractMobileWA(raw) {
   return "";
 }
 
-async function loadSeedData() {
-  try {
-    const url = chrome.runtime.getURL("seed_leads.json");
-    const resp = await fetch(url);
-    if (!resp.ok) return [];
-    const data = await resp.json();
-    if (Array.isArray(data) && data.length > 0) {
-      await chrome.storage.local.set({ hots_leads: data });
-      return data;
+function buildTemplate(key, lead) {
+  const sender = profile.senderName || "Tim BD";
+  const brand = profile.companyBrand || "HOTS Trading";
+  const comp = lead.company_name || "Bapak/Ibu";
+  const pic = lead.contact_person && lead.contact_person !== "Bapak/Ibu" ? lead.contact_person : comp;
+  const loc = lead.location || lead.wilayah || "Indonesia";
+  const prod = lead.products || "produk safety footwear / kebutuhan industri";
+
+  const map = {
+    T1: {
+      subject: `Penawaran Kemitraan & Katalog Produk — ${brand}`,
+      body: `Selamat pagi Bapak/Ibu, saya ${sender} dari ${brand}. Kami menyuplai kebutuhan B2B & safety footwear untuk toko, distributor, dan proyek industri. Apakah saya boleh mengirimkan katalog resmi dan skema harga untuk ${comp}?`
+    },
+    T2: {
+      subject: `Follow Up Kebutuhan Pengadaan — ${comp}`,
+      body: `Selamat pagi Bapak/Ibu ${pic}, saya ${sender} dari ${brand}. Menindaklanjuti komunikasi kita sebelumnya, apakah ada rencana kebutuhan stok untuk bulan depan atau kuartal mendatang? Jika ada, boleh saya tahu model dan perkiraan jumlahnya agar bisa saya siapkan penawarannya?`
+    },
+    T3: {
+      subject: `Pembaruan Penawaran Pengadaan — ${comp}`,
+      body: `Selamat pagi Bapak/Ibu ${pic}, saya ${sender} dari ${brand}. Menindaklanjuti penawaran kami sebelumnya, apakah evaluasi kebutuhan di ${comp} sudah berjalan? Kami siap mengirimkan penawaran yang diperbarui sesuai jumlah unit yang dibutuhkan.`
+    },
+    EMAIL_B2B: {
+      subject: `Penawaran Pengadaan B2B & Katalog Resmi untuk ${comp}`,
+      body: `Selamat pagi Bapak/Ibu ${pic},\n\nPerkenalkan saya ${sender} dari ${brand}.\n\nKami mendukung pengadaan perusahaan dan distributor dengan pasokan langsung dari jalur resmi serta skema harga volume yang transparan untuk kebutuhan operasional di ${comp}.\n\nApakah Bapak/Ibu berkenan jika kami kirimkan katalog resmi atau menjadwalkan diskusi singkat 10 menit minggu ini?\n\nTerima kasih atas waktu dan perhatiannya.\n\nSalam hormat,\n${sender}\n${brand}`
+    },
+    MFG: {
+      subject: `Peluang Kemitraan Distribusi B2B & Ekspor — ${comp}`,
+      body: `Selamat pagi Bapak/Ibu ${pic} (${comp}), salam kenal. Saya ${sender} dari ${brand}. Kami mengapresiasi kapasitas produksi ${prod} di ${loc}. Saat ini kami membuka kerja sama distribusi B2B dan perluasan pasar regional. Apakah saya boleh mengirimkan info singkat program kemitraannya?`
     }
-    return [];
-  } catch {
-    return [];
-  }
+  };
+  return map[key] || map.T1;
 }
 
-let detectedEmail = "";
-
+// --- Chrome Account & Profile ---
 function detectChromeAccount() {
   return new Promise((resolve) => {
     if (chrome.identity && chrome.identity.getProfileUserInfo) {
@@ -99,6 +133,21 @@ function detectChromeAccount() {
   });
 }
 
+function applyProfileToUI() {
+  const brandShort = (profile.companyBrand || "B2B CRM").split("(")[0].trim();
+  document.getElementById("dashBrandTitle").textContent = `${brandShort} CRM`;
+  document.getElementById("dashBrandMark").textContent = brandShort.slice(0, 2).toUpperCase();
+
+  // Populate segment filter dropdown dynamically
+  const segSel = document.getElementById("filterSegment");
+  const curVal = segSel.value;
+  const customSegs = Array.isArray(profile.segments) && profile.segments.length ? profile.segments : DEFAULT_PROFILE.segments;
+  const dataSegs = Array.from(new Set(allLeads.map((l) => l.segment).filter(Boolean)));
+  const merged = Array.from(new Set([...customSegs, ...dataSegs]));
+  segSel.innerHTML = `<option value="">Semua Segmen</option>` + merged.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+  segSel.value = curVal;
+}
+
 function updateProfileBadge() {
   const emailLabel = document.getElementById("profileEmailLabel");
   const statusLabel = document.getElementById("profileConnStatus");
@@ -108,56 +157,128 @@ function updateProfileBadge() {
 
   const activeAccount = (settings.authUser && settings.authUser !== "0")
     ? settings.authUser
-    : (detectedEmail || "Akun Utama (Index 0)");
+    : (detectedEmail || "Akun Utama (0)");
 
   emailLabel.textContent = activeAccount;
-  initialEl.textContent = (activeAccount.replace(/^Akun\s*/i, "")[0] || "G").toUpperCase();
+  initialEl.textContent = (activeAccount.replace(/^Akun\s*/i, "")[0] || "A").toUpperCase();
 
   if (settings.webhookUrl && settings.gsheetUrl) {
-    statusLabel.textContent = "GSheet & Auto-Sync Terhubung ✅";
-    statusLabel.style.color = "#34d399";
+    statusLabel.textContent = "GSheet & Gmail Terhubung";
+    statusLabel.style.color = "var(--green)";
     dotEl.className = "status-dot dot-ok";
   } else if (settings.gsheetUrl) {
     statusLabel.textContent = "GSheet Aktif • Webhook belum diisi";
-    statusLabel.style.color = "#fbbf24";
+    statusLabel.style.color = "var(--accent)";
     dotEl.className = "status-dot dot-warn";
   } else {
     statusLabel.textContent = "Klik untuk hubungkan Google Sheet";
-    statusLabel.style.color = "#94a3b8";
+    statusLabel.style.color = "var(--muted)";
     dotEl.className = "status-dot dot-warn";
   }
 }
 
-async function initData() {
-  await detectChromeAccount();
-  const stored = await chrome.storage.local.get(["hots_leads", "gsheetUrl", "authUser", "webhookUrl"]);
-  settings = {
-    gsheetUrl: stored.gsheetUrl || "",
-    authUser: stored.authUser || detectedEmail || "0",
-    webhookUrl: stored.webhookUrl || ""
-  };
-  document.getElementById("setGSheetUrl").value = settings.gsheetUrl;
-  document.getElementById("setAuthUser").value = settings.authUser;
-  document.getElementById("setWebhookUrl").value = settings.webhookUrl;
-  updateProfileBadge();
-
-  if (Array.isArray(stored.hots_leads) && stored.hots_leads.length > 0) {
-    allLeads = stored.hots_leads;
-  } else {
-    allLeads = await loadSeedData();
-    if (allLeads.length > 0) {
-      showToast(`Berhasil muat ${allLeads.length} leads awal!`);
-    } else {
-      showToast("Data masih kosong. Klik '⬆️ Import CSV' atau mulai scrape!");
+async function loadSeedData() {
+  try {
+    const resp = await fetch(chrome.runtime.getURL("seed_leads.json"));
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    if (Array.isArray(data) && data.length > 0) {
+      await chrome.storage.local.set({ hots_leads: data });
+      return data;
     }
+    return [];
+  } catch {
+    return [];
   }
-  applyFilters();
 }
 
+function populateIndustrySelects() {
+  const list = (window.B2B_DATABASE && window.B2B_DATABASE.industries) || [];
+  const html = list.map((i) => `<option value="${i.id}">${escapeHtml(i.label)}</option>`).join("");
+  document.getElementById("obIndustry").innerHTML = html;
+  document.getElementById("dashKwIndustry").innerHTML = html;
+}
+
+function openOnboardingModal() {
+  document.getElementById("obCompanyBrand").value = profile.companyBrand || "";
+  document.getElementById("obSenderName").value = profile.senderName || "";
+  document.getElementById("obIndustry").value = profile.industryId || "safety_apd";
+  document.getElementById("obRegions").value = profile.regions || "";
+  document.getElementById("obSegments").value = (profile.segments || DEFAULT_PROFILE.segments).join("\n");
+  document.getElementById("modalOnboarding").classList.remove("hidden");
+}
+
+function renderDashboardKeywords() {
+  if (!window.B2B_DATABASE) return;
+  const indId = document.getElementById("dashKwIndustry").value;
+  const regions = document.getElementById("dashKwRegions").value;
+  const topic = document.getElementById("dashKwTopic").value;
+  const rec = window.B2B_DATABASE.generateRecommendations(indId, regions, topic);
+  const grid = document.getElementById("dashKeywordGrid");
+  grid.innerHTML = "";
+
+  [...rec.maps.map((m) => ({ ...m, tag: "Maps" })), ...rec.linkedin.map((l) => ({ ...l, tag: "LinkedIn" }))].forEach((it) => {
+    const div = document.createElement("div");
+    div.className = "kw-item";
+    div.innerHTML = `<span>[${it.tag}] ${escapeHtml(it.query)}</span><button class="btn btn-navy btn-sm">Buka</button>`;
+    div.querySelector("button").addEventListener("click", () => window.open(it.url, "_blank"));
+    grid.appendChild(div);
+  });
+}
+
+// --- Outreach Composer ("Hubungi Via" WA & Draft Gmail) ---
+function openOutreachModal(lead) {
+  activeOutreachLead = lead;
+  const waNum = String(lead.phone_wa || "").replace(/\D/g, "");
+  const hasWa = waNum.startsWith("628");
+  const hasEmail = Boolean(lead.email);
+
+  document.getElementById("outreachCompanyTitle").textContent = lead.company_name;
+  document.getElementById("outreachContactMeta").textContent =
+    `${lead.contact_person || "PIC"} • ${hasWa ? "WA: +" + waNum : (lead.phone_number ? "Telp: " + lead.phone_number : "Tanpa WA")} • ${lead.email || "Tanpa Email"}`;
+
+  const warnBox = document.getElementById("outreachWarningBox");
+  if (lead.warning_note) {
+    warnBox.textContent = `Perhatian: ${lead.warning_note}`;
+    warnBox.classList.remove("hidden");
+  } else {
+    warnBox.classList.add("hidden");
+  }
+
+  // Auto-select best channel (if no WA but has Email, default to Gmail!)
+  setOutreachChannel(hasWa ? "wa" : (hasEmail ? "gmail" : "wa"));
+
+  // Auto-pick template
+  const tplSel = document.getElementById("outreachTemplateSel");
+  if (!hasWa && hasEmail) tplSel.value = "EMAIL_B2B";
+  else if ((lead.follow_up_notes || "").includes("[T2]")) tplSel.value = "T2";
+  else if ((lead.follow_up_notes || "").includes("[T3]")) tplSel.value = "T3";
+  else tplSel.value = "T1";
+
+  refreshOutreachDraft();
+  document.getElementById("modalOutreach").classList.remove("hidden");
+}
+
+function setOutreachChannel(ch) {
+  activeOutreachChannel = ch;
+  document.getElementById("chBtnWa").classList.toggle("active", ch === "wa");
+  document.getElementById("chBtnGmail").classList.toggle("active", ch === "gmail");
+  document.getElementById("outreachSubjectRow").classList.toggle("hidden", ch !== "gmail");
+}
+
+function refreshOutreachDraft() {
+  if (!activeOutreachLead) return;
+  const key = document.getElementById("outreachTemplateSel").value;
+  const tpl = buildTemplate(key, activeOutreachLead);
+  document.getElementById("outreachSubject").value = tpl.subject;
+  document.getElementById("outreachMessage").value = tpl.body;
+}
+
+// --- KPI & Render Leads ---
 function updateKPIs() {
   document.getElementById("kpiTotal").textContent = allLeads.length;
   document.getElementById("kpiWa").textContent = allLeads.filter((l) => l.is_wa_valid == 1 || (l.phone_wa && String(l.phone_wa).startsWith("628"))).length;
-  document.getElementById("kpiOutreach").textContent = allLeads.filter((l) => /^H[123]\s/i.test(l.batch_day || "")).length;
+  document.getElementById("kpiEmail").textContent = allLeads.filter((l) => l.email && l.email.includes("@")).length;
   document.getElementById("kpiContacted").textContent = allLeads.filter((l) => l.outreach_status && l.outreach_status !== "Belum Dihubungi").length;
 }
 
@@ -168,8 +289,9 @@ function applyFilters() {
     if (filterState.segment && (l.segment || "") !== filterState.segment) return false;
     if (filterState.status && (l.outreach_status || "Belum Dihubungi") !== filterState.status) return false;
     if (filterState.waOnly && !(l.is_wa_valid == 1 || (l.phone_wa && String(l.phone_wa).startsWith("628")))) return false;
+    if (filterState.emailOnly && !(l.email && l.email.includes("@"))) return false;
     if (q) {
-      const hay = `${l.company_name} ${l.contact_person} ${l.location} ${l.wilayah} ${l.phone_wa} ${l.phone_number} ${l.email} ${l.products} ${l.follow_up_notes} ${l.batch_day}`.toLowerCase();
+      const hay = `${l.company_name} ${l.contact_person} ${l.location} ${l.wilayah} ${l.address} ${l.phone_wa} ${l.phone_number} ${l.email} ${l.products} ${l.follow_up_notes} ${l.batch_day}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -193,68 +315,51 @@ function renderLeads() {
   document.getElementById("btnNext").disabled = filterState.page >= totalPages;
 
   if (!slice.length) {
-    container.innerHTML = `<div class="lead-card"><div class="company-name">Tidak ada data yang cocok dengan filter.</div></div>`;
+    container.innerHTML = `<div class="lead-card"><div class="company-name">Belum ada data yang cocok.</div><div class="company-loc">Gunakan tombol Import CSV atau buka Google Maps / Website lalu klik Deep Scan di ikon Extension.</div></div>`;
     return;
   }
 
   container.innerHTML = "";
+  const statusOpts = ["Belum Dihubungi", "Terkirim", "Dibalas", "Butuh jelas", "SPH dikirim", "Tidak tertarik"];
+
   slice.forEach((lead) => {
     const waNum = String(lead.phone_wa || "").replace(/\D/g, "");
     const hasWa = waNum.startsWith("628");
-    const card = document.createElement("div");
-    card.className = `lead-card ${lead.warning_note ? "has-warning" : ""}`;
-
-    const badgeText = lead.batch_day || lead.segment || "Lead";
     const statusVal = lead.outreach_status || "Belum Dihubungi";
-    const statusOpts = ["Belum Dihubungi", "Terkirim", "Dibalas", "Butuh jelas", "SPH dikirim", "Tidak tertarik", "Sudah Dihubungi"];
 
+    const card = document.createElement("article");
+    card.className = `lead-card ${lead.warning_note ? "has-warning" : ""}`;
     card.innerHTML = `
       <div class="card-head">
         <div>
           <div class="company-name">${escapeHtml(lead.company_name)}</div>
-          <div class="meta-muted">${escapeHtml(lead.location || lead.wilayah || "-")} • ${escapeHtml(lead.industry || lead.segment || "")}</div>
+          <div class="company-loc">${escapeHtml(lead.location || lead.wilayah || "-")} · ${escapeHtml(lead.segment || lead.industry || "")}</div>
         </div>
-        <span class="batch-tag">${escapeHtml(badgeText)}</span>
+        <span class="batch-label">${escapeHtml(lead.batch_day || "CRM")}</span>
       </div>
-      <div class="meta-line">
-        ${lead.contact_person ? `👤 <strong>${escapeHtml(lead.contact_person)}</strong> ${lead.job_title ? `(${escapeHtml(lead.job_title)})` : ""}<br>` : ""}
-        ${hasWa ? `📱 WA: <strong>+${escapeHtml(waNum)}</strong>` : (lead.phone_number ? `☎️ Telp Kantor: ${escapeHtml(lead.phone_number)}` : "📱 WA: -")}
-        ${lead.email ? `<br>✉️ ${escapeHtml(lead.email)}` : ""}
+
+      <div class="contact-lines">
+        ${lead.contact_person ? `<span><strong>PIC:</strong> ${escapeHtml(lead.contact_person)} ${lead.job_title ? `(${escapeHtml(lead.job_title)})` : ""}</span>` : ""}
+        <span><strong>Kontak:</strong> ${hasWa ? `WA +${escapeHtml(waNum)}` : (lead.phone_number ? escapeHtml(lead.phone_number) : "-")}</span>
+        ${lead.email ? `<span><strong>Email:</strong> ${escapeHtml(lead.email)}</span>` : ""}
+        ${lead.address ? `<span class="addr-line"><strong>Alamat:</strong> ${escapeHtml(lead.address)}</span>` : ""}
       </div>
-      ${lead.warning_note ? `<div class="warning-box">⚠️ ${escapeHtml(lead.warning_note)}</div>` : ""}
-      ${lead.follow_up_notes ? `<div class="notes-box">${escapeHtml(lead.follow_up_notes)}</div>` : ""}
-      <div class="card-actions">
-        ${hasWa ? `<button class="btn btn-wa btn-sm btn-open-wa">💬 Buka WA</button>` : ""}
-        ${lead.email ? `<a class="btn btn-email btn-sm" href="mailto:${escapeHtml(lead.email)}?subject=${encodeURIComponent("Penawaran AP Boots - HOTS Trading")}" target="_blank">✉️ Email</a>` : ""}
-        ${lead.linkedin_url ? `<a class="btn btn-secondary btn-sm" href="${escapeHtml(lead.linkedin_url)}" target="_blank">💼 LinkedIn</a>` : ""}
+
+      ${lead.warning_note ? `<div class="warning-banner">${escapeHtml(lead.warning_note)}</div>` : ""}
+      ${lead.follow_up_notes ? `<div class="notes-line">${escapeHtml(lead.follow_up_notes)}</div>` : ""}
+
+      <div class="card-footer">
+        <button class="btn btn-accent btn-sm btn-contact-lead">Hubungi (WA / Gmail)</button>
+        ${lead.website && lead.website.startsWith("http") ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(lead.website)}" target="_blank">Web</a>` : ""}
+        ${lead.linkedin_url ? `<a class="btn btn-outline btn-sm" href="${escapeHtml(lead.linkedin_url)}" target="_blank">LinkedIn</a>` : ""}
         <select class="status-select">
           ${statusOpts.map((st) => `<option value="${st}" ${st === statusVal ? "selected" : ""}>${st}</option>`).join("")}
         </select>
       </div>
     `;
 
-    // 1-Klik Buka WhatsApp
-    const btnWa = card.querySelector(".btn-open-wa");
-    if (btnWa) {
-      btnWa.addEventListener("click", async () => {
-        const tplKey = document.getElementById("activeTemplate").value || "T1";
-        const msg = (TEMPLATES[tplKey] || TEMPLATES.T1)(lead);
-        const waUrl = `https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`;
-        window.open(waUrl, "_blank");
-
-        if ((lead.outreach_status || "Belum Dihubungi") === "Belum Dihubungi") {
-          lead.outreach_status = "Terkirim";
-          lead.last_contacted_at = new Date().toISOString();
-          await chrome.storage.local.set({ hots_leads: allLeads });
-          updateKPIs();
-          card.querySelector(".status-select").value = "Terkirim";
-        }
-      });
-    }
-
-    // Status update
-    const sel = card.querySelector(".status-select");
-    sel.addEventListener("change", async (e) => {
+    card.querySelector(".btn-contact-lead").addEventListener("click", () => openOutreachModal(lead));
+    card.querySelector(".status-select").addEventListener("change", async (e) => {
       lead.outreach_status = e.target.value;
       lead.last_contacted_at = new Date().toISOString();
       await chrome.storage.local.set({ hots_leads: allLeads });
@@ -266,25 +371,22 @@ function renderLeads() {
   });
 }
 
-// --- CSV Export & Import ---
+// --- CSV Export / Import ---
 function exportCsv() {
   const cols = [
     "batch_day", "company_name", "segment", "industry", "contact_person", "job_title",
-    "phone_wa", "phone_number", "email", "location", "wilayah", "products",
+    "phone_wa", "phone_number", "email", "location", "wilayah", "address", "products",
     "website", "linkedin_url", "outreach_status", "follow_up_notes", "warning_note", "source_url"
   ];
-  const rows = filteredLeads.map((l) =>
-    cols.map((c) => `"${String(l[c] || "").replace(/"/g, '""')}"`).join(",")
-  );
+  const rows = filteredLeads.map((l) => cols.map((c) => `"${String(l[c] || "").replace(/"/g, '""')}"`).join(","));
   const csv = "\uFEFF" + [cols.join(","), ...rows].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
   const a = document.createElement("a");
   a.href = url;
-  a.download = `hots_crm_leads_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `b2b_crm_leads_${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast(`Berhasil export ${filteredLeads.length} leads ke CSV!`);
+  showToast(`Export ${filteredLeads.length} leads ke CSV selesai.`);
 }
 
 function parseCsvLine(line) {
@@ -295,11 +397,8 @@ function parseCsvLine(line) {
     if (ch === '"') {
       if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
       else inQ = !inQ;
-    } else if (ch === "," && !inQ) {
-      res.push(cur); cur = "";
-    } else {
-      cur += ch;
-    }
+    } else if (ch === "," && !inQ) { res.push(cur); cur = ""; }
+    else cur += ch;
   }
   res.push(cur);
   return res;
@@ -326,7 +425,7 @@ async function importCsvFile(file) {
       id: Date.now() + i,
       batch_day: obj.batch_day || obj.hari || "CSV Import",
       company_name: comp,
-      segment: obj.segment || "Segmen A: Reseller & Toko K3",
+      segment: obj.segment || (profile.segments && profile.segments[0]) || "B2B Lead",
       industry: obj.industry || obj.tipe || "",
       contact_person: obj.contact_person || "",
       job_title: obj.job_title || "",
@@ -336,6 +435,7 @@ async function importCsvFile(file) {
       email: obj.email || "",
       location: obj.location || obj.kota || "",
       wilayah: obj.wilayah || obj.kota || "",
+      address: obj.address || obj.alamat || "",
       products: obj.products || "",
       website: obj.website || "",
       linkedin_url: obj.linkedin_url || "",
@@ -352,107 +452,233 @@ async function importCsvFile(file) {
     }
   }
   await chrome.storage.local.set({ hots_leads: allLeads });
+  applyProfileToUI();
   applyFilters();
-  showToast(`Import CSV selesai: +${added} leads baru masuk!`);
+  showToast(`Import CSV selesai: +${added} leads baru.`);
 }
 
-// --- Google Sheet Sync ---
 async function syncToGoogleSheet() {
   if (!settings.webhookUrl) {
-    showToast("Isi Google Apps Script Webhook URL di Pengaturan (⚙️) dulu!", true);
+    showToast("Isi Google Apps Script Webhook URL di Pengaturan dulu!", true);
     document.getElementById("modalSettings").classList.remove("hidden");
     return;
   }
   const toSend = filteredLeads.slice(0, 150);
-  document.getElementById("syncStatusText").textContent = `⏳ Mengirim ${toSend.length} leads ke Google Sheet...`;
+  document.getElementById("syncStatusText").textContent = `Mengirim ${toSend.length} leads ke Google Sheet...`;
   try {
     await fetch(settings.webhookUrl, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "upsert_leads", leads: toSend })
+      body: JSON.stringify({
+        action: "upsert_leads",
+        sender_name: profile.senderName,
+        company_brand: profile.companyBrand,
+        leads: toSend
+      })
     });
-    document.getElementById("syncStatusText").textContent = `✅ ${toSend.length} leads terkirim ke Google Sheet!`;
+    document.getElementById("syncStatusText").textContent = `${toSend.length} leads terkirim ke Google Sheet.`;
     showToast(`Sync ${toSend.length} leads ke Google Sheet selesai!`);
   } catch (e) {
-    document.getElementById("syncStatusText").textContent = `❌ Gagal sync: ${e.message}`;
+    document.getElementById("syncStatusText").textContent = `Gagal sync: ${e.message}`;
     showToast("Gagal sync ke Google Sheet", true);
   }
 }
 
-// --- Event Listeners ---
-document.addEventListener("DOMContentLoaded", () => {
-  initData();
+// --- Init ---
+async function initApp() {
+  populateIndustrySelects();
+  await detectChromeAccount();
 
-  // Live update jika Chrome Extension Popup menambah lead baru!
+  const stored = await chrome.storage.local.get(["hots_leads", "gsheetUrl", "authUser", "webhookUrl", "crm_profile", "theme"]);
+  if (stored.crm_profile) profile = { ...DEFAULT_PROFILE, ...stored.crm_profile };
+  settings = {
+    gsheetUrl: stored.gsheetUrl || "",
+    authUser: stored.authUser || detectedEmail || "0",
+    webhookUrl: stored.webhookUrl || "",
+    theme: stored.theme || "light"
+  };
+
+  document.documentElement.setAttribute("data-theme", settings.theme);
+  document.getElementById("setGSheetUrl").value = settings.gsheetUrl;
+  document.getElementById("setAuthUser").value = settings.authUser;
+  document.getElementById("setWebhookUrl").value = settings.webhookUrl;
+
+  if (Array.isArray(stored.hots_leads) && stored.hots_leads.length > 0) {
+    allLeads = stored.hots_leads;
+  } else {
+    allLeads = await loadSeedData();
+  }
+
+  applyProfileToUI();
+  updateProfileBadge();
+  applyFilters();
+
+  // Tampilkan Onboarding Wizard saat pertama kali instal atau jika dibuka via #onboarding
+  if (!profile.onboarded || window.location.hash === "#onboarding") {
+    openOnboardingModal();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initApp();
+
+  // Live sync dari Popup Scraper
   chrome.storage.onChanged.addListener((changes) => {
     if (changes.hots_leads && Array.isArray(changes.hots_leads.newValue)) {
       allLeads = changes.hots_leads.newValue;
+      applyProfileToUI();
       applyFilters();
     }
   });
 
-  // Batch Pills
-  document.querySelectorAll("#batchPills .filter-pill").forEach((btn) => {
+  // Close buttons for all modals
+  document.querySelectorAll("[data-close]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll("#batchPills .filter-pill").forEach((b) => b.classList.remove("active"));
+      document.getElementById(btn.dataset.close).classList.add("hidden");
+    });
+  });
+
+  // Theme toggle
+  document.getElementById("btnToggleTheme").addEventListener("click", async () => {
+    settings.theme = settings.theme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", settings.theme);
+    await chrome.storage.local.set({ theme: settings.theme });
+  });
+
+  // Batch tabs
+  document.querySelectorAll("#batchPills .batch-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#batchPills .batch-tab").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       filterState.batch = btn.dataset.batch || "";
       applyFilters();
     });
   });
 
-  document.getElementById("searchInput").addEventListener("input", (e) => {
-    filterState.search = e.target.value.trim();
-    applyFilters();
-  });
-  document.getElementById("filterSegment").addEventListener("change", (e) => {
-    filterState.segment = e.target.value;
-    applyFilters();
-  });
-  document.getElementById("filterStatus").addEventListener("change", (e) => {
-    filterState.status = e.target.value;
-    applyFilters();
-  });
-  document.getElementById("chkWaOnly").addEventListener("change", (e) => {
-    filterState.waOnly = e.target.checked;
-    applyFilters();
-  });
+  document.getElementById("searchInput").addEventListener("input", (e) => { filterState.search = e.target.value.trim(); applyFilters(); });
+  document.getElementById("filterSegment").addEventListener("change", (e) => { filterState.segment = e.target.value; applyFilters(); });
+  document.getElementById("filterStatus").addEventListener("change", (e) => { filterState.status = e.target.value; applyFilters(); });
+  document.getElementById("chkWaOnly").addEventListener("change", (e) => { filterState.waOnly = e.target.checked; applyFilters(); });
+  document.getElementById("chkEmailOnly").addEventListener("change", (e) => { filterState.emailOnly = e.target.checked; applyFilters(); });
+  document.getElementById("btnPrev").addEventListener("click", () => { if (filterState.page > 1) { filterState.page--; renderLeads(); window.scrollTo(0, 0); } });
+  document.getElementById("btnNext").addEventListener("click", () => { filterState.page++; renderLeads(); window.scrollTo(0, 0); });
 
-  document.getElementById("btnPrev").addEventListener("click", () => {
-    if (filterState.page > 1) { filterState.page--; renderLeads(); window.scrollTo(0, 0); }
-  });
-  document.getElementById("btnNext").addEventListener("click", () => {
-    filterState.page++; renderLeads(); window.scrollTo(0, 0);
-  });
+  // Outreach Modal Controls
+  document.getElementById("chBtnWa").addEventListener("click", () => setOutreachChannel("wa"));
+  document.getElementById("chBtnGmail").addEventListener("click", () => setOutreachChannel("gmail"));
+  document.getElementById("outreachTemplateSel").addEventListener("change", refreshOutreachDraft);
 
-  // Profile Badge -> buka modal pengaturan akun & Google Sheet
-  const elProfileBadge = document.getElementById("profileBadge");
-  if (elProfileBadge) {
-    elProfileBadge.addEventListener("click", () => {
-      document.getElementById("modalSettings").classList.remove("hidden");
-    });
+  async function markActiveLeadSent() {
+    if (!activeOutreachLead) return;
+    if ((activeOutreachLead.outreach_status || "Belum Dihubungi") === "Belum Dihubungi") {
+      activeOutreachLead.outreach_status = "Terkirim";
+      activeOutreachLead.last_contacted_at = new Date().toISOString();
+      await chrome.storage.local.set({ hots_leads: allLeads });
+      applyFilters();
+    }
   }
 
-  document.getElementById("btnUseDetectedAccount").addEventListener("click", () => {
-    if (!detectedEmail) {
-      showToast("Email Chrome tidak terdeteksi. Ketik manual email/index akunmu.", true);
+  document.getElementById("btnSendViaWa").addEventListener("click", async () => {
+    if (!activeOutreachLead) return;
+    const waNum = String(activeOutreachLead.phone_wa || "").replace(/\D/g, "");
+    if (!waNum) {
+      showToast("Lead ini tidak memiliki nomor WA valid. Gunakan Draft Gmail!", true);
       return;
     }
-    document.getElementById("setAuthUser").value = detectedEmail;
-    showToast(`Akun diisi: ${detectedEmail}`);
+    const msg = document.getElementById("outreachMessage").value;
+    window.open(`https://web.whatsapp.com/send?phone=${waNum}&text=${encodeURIComponent(msg)}`, "_blank");
+    await markActiveLeadSent();
+    document.getElementById("modalOutreach").classList.add("hidden");
   });
 
-  // 1-Klik Copy Kode Apps Script (.gs)
+  document.getElementById("btnSendViaGmail").addEventListener("click", async () => {
+    if (!activeOutreachLead) return;
+    const to = activeOutreachLead.email || "";
+    const subject = document.getElementById("outreachSubject").value;
+    const body = document.getElementById("outreachMessage").value;
+    const auth = settings.authUser || detectedEmail || "0";
+    window.open(buildGmailComposeUrl(to, subject, body, auth), "_blank");
+    await markActiveLeadSent();
+    document.getElementById("modalOutreach").classList.add("hidden");
+  });
+
+  document.getElementById("btnCopyDraft").addEventListener("click", async () => {
+    await navigator.clipboard.writeText(document.getElementById("outreachMessage").value);
+    showToast("Draft pesan disalin ke clipboard.");
+  });
+
+  // Onboarding Modal
+  document.getElementById("btnOpenOnboarding").addEventListener("click", openOnboardingModal);
+  document.getElementById("btnLoadDefaultSegments").addEventListener("click", () => {
+    const indId = document.getElementById("obIndustry").value;
+    const ind = (window.B2B_DATABASE?.industries || []).find((i) => i.id === indId);
+    if (ind) document.getElementById("obSegments").value = ind.defaultSegments.join("\n");
+  });
+  document.getElementById("btnSaveOnboarding").addEventListener("click", async () => {
+    const segLines = document.getElementById("obSegments").value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    profile = {
+      companyBrand: document.getElementById("obCompanyBrand").value.trim() || "HOTS Trading",
+      senderName: document.getElementById("obSenderName").value.trim() || "Tim BD",
+      industryId: document.getElementById("obIndustry").value || "safety_apd",
+      regions: document.getElementById("obRegions").value.trim() || "Jakarta",
+      segments: segLines.length ? segLines : DEFAULT_PROFILE.segments,
+      onboarded: true
+    };
+    await chrome.storage.local.set({ crm_profile: profile });
+    applyProfileToUI();
+    document.getElementById("modalOnboarding").classList.add("hidden");
+    showToast("Profil bisnis & segmen kustom berhasil diterapkan!");
+  });
+
+  // Smart Keywords Modal
+  document.getElementById("btnOpenKeywords").addEventListener("click", () => {
+    document.getElementById("dashKwIndustry").value = profile.industryId || "safety_apd";
+    document.getElementById("dashKwRegions").value = profile.regions || "Jakarta, Surabaya";
+    renderDashboardKeywords();
+    document.getElementById("modalKeywords").classList.remove("hidden");
+  });
+  document.getElementById("dashKwIndustry").addEventListener("change", renderDashboardKeywords);
+  document.getElementById("dashKwRegions").addEventListener("input", renderDashboardKeywords);
+  document.getElementById("dashKwTopic").addEventListener("input", renderDashboardKeywords);
+
+  // Settings & GSheet
+  document.getElementById("profileBadge").addEventListener("click", () => {
+    document.getElementById("modalSettings").classList.remove("hidden");
+  });
+  document.getElementById("btnUseDetectedAccount").addEventListener("click", () => {
+    if (!detectedEmail) { showToast("Email Chrome tidak terdeteksi.", true); return; }
+    document.getElementById("setAuthUser").value = detectedEmail;
+  });
   document.getElementById("btnCopyGsScript").addEventListener("click", async () => {
     try {
       const resp = await fetch(chrome.runtime.getURL("apps_script_template.gs"));
-      const code = await resp.text();
-      await navigator.clipboard.writeText(code);
-      showToast("📋 Kode Apps Script (.gs) tersalin! Tinggal Paste di Extensions > Apps Script.");
+      await navigator.clipboard.writeText(await resp.text());
+      showToast("Kode Apps Script v1.1 tersalin! Paste di Extensions > Apps Script lalu Deploy ulang.");
     } catch (e) {
-      showToast("Gagal menyalin kode .gs: " + e.message, true);
+      showToast("Gagal copy kode .gs: " + e.message, true);
     }
+  });
+  document.getElementById("btnSaveSettings").addEventListener("click", async () => {
+    settings.gsheetUrl = document.getElementById("setGSheetUrl").value.trim();
+    settings.authUser = document.getElementById("setAuthUser").value.trim() || detectedEmail || "0";
+    settings.webhookUrl = document.getElementById("setWebhookUrl").value.trim();
+    await chrome.storage.local.set({
+      gsheetUrl: settings.gsheetUrl,
+      authUser: settings.authUser,
+      webhookUrl: settings.webhookUrl
+    });
+    updateProfileBadge();
+    document.getElementById("modalSettings").classList.add("hidden");
+    showToast("Pengaturan Akun & Google Sheet tersimpan.");
+  });
+  document.getElementById("btnResetSeed").addEventListener("click", async () => {
+    if (!confirm("Reset data ke data awal lokal?")) return;
+    allLeads = await loadSeedData();
+    applyProfileToUI();
+    applyFilters();
+    document.getElementById("modalSettings").classList.add("hidden");
+    showToast("Data di-reset.");
   });
 
   document.getElementById("btnOpenGSheet").addEventListener("click", () => {
@@ -463,38 +689,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     window.open(buildAuthUserUrl(settings.gsheetUrl, settings.authUser), "_blank");
   });
-
   document.getElementById("btnSyncGSheet").addEventListener("click", syncToGoogleSheet);
   document.getElementById("btnExportCsv").addEventListener("click", exportCsv);
   document.getElementById("inputImportCsv").addEventListener("change", (e) => {
     if (e.target.files[0]) importCsvFile(e.target.files[0]);
     e.target.value = "";
-  });
-
-  // Modal Settings
-  document.getElementById("btnOpenSettings").addEventListener("click", () => {
-    document.getElementById("modalSettings").classList.remove("hidden");
-  });
-  document.getElementById("btnCloseSettings").addEventListener("click", () => {
-    document.getElementById("modalSettings").classList.add("hidden");
-  });
-  document.getElementById("btnSaveSettings").addEventListener("click", async () => {
-    settings = {
-      gsheetUrl: document.getElementById("setGSheetUrl").value.trim(),
-      authUser: document.getElementById("setAuthUser").value.trim() || detectedEmail || "0",
-      webhookUrl: document.getElementById("setWebhookUrl").value.trim()
-    };
-    await chrome.storage.local.set(settings);
-    updateProfileBadge();
-    document.getElementById("modalSettings").classList.add("hidden");
-    showToast("Pengaturan Google Sheet & Akun tersimpan!");
-  });
-
-  document.getElementById("btnResetSeed").addEventListener("click", async () => {
-    if (!confirm("Muat ulang 277 data awal dari leads.db? Perubahan status lokal akan diganti.")) return;
-    allLeads = await loadSeedData();
-    applyFilters();
-    document.getElementById("modalSettings").classList.add("hidden");
-    showToast("Data CRM berhasil di-reset ke 277 leads awal!");
   });
 });
