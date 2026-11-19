@@ -695,4 +695,103 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target.files[0]) importCsvFile(e.target.files[0]);
     e.target.value = "";
   });
+
+  // Double Check Bentrok & Duplikat Modal
+  function normalizeName(s) {
+    return String(s || "")
+      .toLowerCase()
+      .replace(/\b(pt|cv|ud|pd|tbk|jsc|corp|corporation|co\.?,?\s*ltd|ltd|inc|llc|group|indonesia|vietnam)\b/g, " ")
+      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function scanCrmConflicts() {
+    const conflicts = [];
+    const byNormName = new Map();
+    const byWa = new Map();
+    const byEmail = new Map();
+
+    allLeads.forEach((l, idx) => {
+      const nKey = normalizeName(l.company_name);
+      if (nKey && nKey.length >= 3) {
+        if (!byNormName.has(nKey)) byNormName.set(nKey, []);
+        byNormName.get(nKey).push({ idx, lead: l });
+      }
+      const wa = String(l.phone_wa || "").replace(/\D/g, "");
+      if (wa && wa.length >= 9) {
+        if (!byWa.has(wa)) byWa.set(wa, []);
+        byWa.get(wa).push({ idx, lead: l });
+      }
+      const em = String(l.email || "").trim().toLowerCase();
+      if (em && em.includes("@")) {
+        if (!byEmail.has(em)) byEmail.set(em, []);
+        byEmail.get(em).push({ idx, lead: l });
+      }
+    });
+
+    byNormName.forEach((arr, k) => {
+      if (arr.length > 1) conflicts.push({ type: "Nama Perusahaan Mirip", key: k, items: arr });
+    });
+    byWa.forEach((arr, k) => {
+      if (arr.length > 1) conflicts.push({ type: "Nomor WA Dipakai Banyak PT", key: "+" + k, items: arr });
+    });
+    byEmail.forEach((arr, k) => {
+      if (arr.length > 1) conflicts.push({ type: "Email Sama", key: k, items: arr });
+    });
+
+    return conflicts;
+  }
+
+  function renderConflictAudit() {
+    const listEl = document.getElementById("conflictAuditList");
+    const sumEl = document.getElementById("conflictAuditSummary");
+    const conflicts = scanCrmConflicts();
+
+    sumEl.textContent = conflicts.length
+      ? `Ditemukan ${conflicts.length} kelompok potensi bentrok / duplikat dari total ${allLeads.length} leads.`
+      : `Semua ${allLeads.length} leads bersih! Tidak ada duplikat atau nomor/email bentrok.`;
+
+    listEl.innerHTML = "";
+    conflicts.forEach((c) => {
+      const box = document.createElement("div");
+      box.className = "warning-banner";
+      const names = c.items.map((x) => `${x.lead.company_name} (${x.lead.batch_day || "CRM"} / ${x.lead.outreach_status || "Belum Dihubungi"})`).join("  vs  ");
+      box.innerHTML = `<strong>${escapeHtml(c.type)}: ${escapeHtml(c.key)}</strong><br><span>${escapeHtml(names)}</span>`;
+      listEl.appendChild(box);
+    });
+  }
+
+  document.getElementById("btnDoubleCheck").addEventListener("click", () => {
+    renderConflictAudit();
+    document.getElementById("modalConflicts").classList.remove("hidden");
+  });
+
+  document.getElementById("btnAutoDedupeExact").addEventListener("click", async () => {
+    const seen = new Map();
+    const cleaned = [];
+    let removed = 0;
+
+    for (const l of allLeads) {
+      const key = String(l.company_name || "").trim().toLowerCase();
+      if (!key) continue;
+      if (seen.has(key)) {
+        const prev = seen.get(key);
+        if (!prev.phone_wa && l.phone_wa) { prev.phone_wa = l.phone_wa; prev.is_wa_valid = 1; }
+        if (!prev.email && l.email) prev.email = l.email;
+        if (!prev.address && l.address) prev.address = l.address;
+        removed++;
+      } else {
+        seen.set(key, l);
+        cleaned.push(l);
+      }
+    }
+
+    allLeads = cleaned;
+    await chrome.storage.local.set({ hots_leads: allLeads });
+    applyProfileToUI();
+    applyFilters();
+    renderConflictAudit();
+    showToast(`Selesai! ${removed} duplikat nama persis digabungkan.`);
+  });
 });

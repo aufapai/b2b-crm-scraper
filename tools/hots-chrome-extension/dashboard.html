@@ -32,6 +32,7 @@
 
         <button id="btnOpenGSheet" class="btn btn-outline-green">Buka GSheet</button>
         <button id="btnSyncGSheet" class="btn btn-navy">Sync ke Sheet</button>
+        <button id="btnDoubleCheck" class="btn btn-outline" title="Cek duplikat nama, nomor telepon, email &amp; domain agar tidak bentrok">Cek Bentrok</button>
         <button id="btnOpenKeywords" class="btn btn-accent">Cari Lead (Maps/LI)</button>
         <button id="btnExportCsv" class="btn btn-outline">Export CSV</button>
         <label class="btn btn-outline" style="cursor:pointer;">
@@ -280,6 +281,27 @@
         <div class="modal-actions">
           <button id="btnSaveSettings" class="btn btn-navy">Simpan Pengaturan</button>
           <button id="btnResetSeed" class="btn btn-danger">Reset Data Awal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: DOUBLE CHECK BENTROK & DUPLIKAT -->
+  <div id="modalConflicts" class="modal hidden">
+    <div class="modal-card modal-lg">
+      <div class="modal-head">
+        <div>
+          <h3>Double Check Bentrok &amp; Duplikat CRM</h3>
+          <p class="modal-sub">Mendeteksi nama perusahaan mirip, nomor WA/telepon ganda, email ganda, atau domain sama.</p>
+        </div>
+        <button class="btn-close" data-close="modalConflicts">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="conflictAuditSummary" class="notes-line">Memindai data CRM...</div>
+        <div id="conflictAuditList" style="max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
+        <div class="modal-actions">
+          <button id="btnAutoDedupeExact" class="btn btn-navy">Gabungkan Duplikat Persis</button>
+          <button class="btn btn-outline" data-close="modalConflicts">Tutup</button>
         </div>
       </div>
     </div>

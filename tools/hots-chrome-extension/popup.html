@@ -69,7 +69,12 @@
           <span id="resultCount">0 lead terdeteksi</span>
           <button id="btnClearResults" class="text-btn">Hapus</button>
         </div>
+        <div id="conflictSummary" class="conflict-summary hidden"></div>
         <div id="resultsList" class="results-list"></div>
+        <label class="chk-skip">
+          <input type="checkbox" id="chkSkipConflicts" checked>
+          <span>Otomatis lewati lead yang bentrok / sudah ada di CRM</span>
+        </label>
         <div class="btn-row">
           <button id="btnPushAll" class="btn btn-green">Simpan ke CRM &amp; Sheet</button>
           <button id="btnDownloadCsv" class="btn btn-outline">Download CSV</button>

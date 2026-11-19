@@ -196,11 +196,12 @@ async function deepOnlineExtractor(crawlContactSubpage = false) {
       });
     });
 
-    // Address extraction (lines containing Jl., Jalan, Ward, District, Street, Suite, Industrial, HCMC, Ha Noi, Bangkok, Jakarta, etc.)
-    const addrRx = /(?:jl\.|jalan|komp\.|komplek|kaw\.|kawasan industri|gedung|menara|ruko|ward|district|hcmc|ho chi minh|ha noi|hanoi|vietnam|bangkok|thailand|singapore|malaysia|selangor|kuala lumpur|street|road|ave\.|avenue|no\.\s*\d+|floor|lt\.\s*\d+)/i;
-    const lines = (priorityText || fullText.slice(-8000)).split(/\r?\n/).map(clean).filter((l) => l.length >= 15 && l.length <= 180);
+    // Address extraction (tightened from live VN/ID test: require street/ward/district + digits or location, skip marketing slogans)
+    const addrRx = /(?:jl\.|jalan|đường|duong|komp\.|komplek|kaw\.|kawasan industri|gedung|menara|ruko|ward|phường|phuong|district|quận|quan|street|road|ave\.|avenue|tower|floor|lt\.\s*\d+|no\.\s*\d+|\d+\/\d+)/i;
+    const sloganRx = /(?:copyright|all rights reserved|sitemap|established in|leading unit|building futures|read more|learn more|cookie|privacy policy)/i;
+    const lines = (priorityText || fullText.slice(-10000)).split(/\r?\n/).map(clean).filter((l) => l.length >= 16 && l.length <= 180);
     for (const ln of lines) {
-      if (addrRx.test(ln) && !ln.includes("@") && !/^http/i.test(ln) && !/copyright|all rights reserved|sitemap/i.test(ln)) {
+      if (addrRx.test(ln) && /\d/.test(ln) && !ln.includes("@") && !/^http/i.test(ln) && !sloganRx.test(ln)) {
         addresses.add(ln);
         if (addresses.size >= 2) break;
       }
@@ -453,19 +454,110 @@ async function googleMapsAutoScroller(targetCount = 40) {
   return { siteType: "maps", leads };
 }
 
+// --- Double Check & Anti-Bentrok Engine ---
+function normalizeCompanyKey(name) {
+  return String(name || "")
+    .toLowerCase()
+    .replace(/\b(pt|cv|ud|pd|tbk|jsc|corp|corporation|co\.?,?\s*ltd|ltd|inc|llc|group|engineering|construction|e&c|indonesia|vietnam)\b/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractDomain(url) {
+  if (!url) return "";
+  try {
+    const u = new URL(url.startsWith("http") ? url : "https://" + url);
+    return u.hostname.replace(/^www\./i, "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+function digitsOnly(s) {
+  return String(s || "").replace(/\D/g, "");
+}
+
+async function runDoubleCheck(leads) {
+  const st = await chrome.storage.local.get(["hots_leads"]);
+  const existing = Array.isArray(st.hots_leads) ? st.hots_leads : [];
+
+  return leads.map((lead) => {
+    const rawName = String(lead.company_name || "").trim();
+    const normKey = normalizeCompanyKey(rawName);
+    const domain = extractDomain(lead.website || lead.source_url);
+    const email = String(lead.email || "").trim().toLowerCase();
+    const phoneDigits = digitsOnly(lead.phone_number);
+    const waDigits = extractMobileWA(lead.phone_number);
+
+    let conflictReason = "";
+    let matchedLead = null;
+
+    for (const ex of existing) {
+      const exName = String(ex.company_name || "").trim();
+      const exNorm = normalizeCompanyKey(exName);
+      const exDomain = extractDomain(ex.website);
+      const exEmail = String(ex.email || "").trim().toLowerCase();
+      const exPhone = digitsOnly(ex.phone_number);
+      const exWa = digitsOnly(ex.phone_wa);
+
+      if (rawName && exName.toLowerCase() === rawName.toLowerCase()) {
+        conflictReason = `Sudah ada di CRM (${ex.outreach_status || "Belum Dihubungi"})`;
+        matchedLead = ex;
+        break;
+      }
+      if (normKey && exNorm && normKey.length >= 4 && (normKey === exNorm || (normKey.length >= 6 && (exNorm.includes(normKey) || normKey.includes(exNorm))))) {
+        conflictReason = `Nama mirip di CRM: "${exName}"`;
+        matchedLead = ex;
+        break;
+      }
+      if (domain && exDomain && !["google.com", "linkedin.com", "tokopedia.com", "shopee.co.id", "lazada.co.id"].includes(domain) && domain === exDomain) {
+        conflictReason = `Domain ${domain} sudah terdaftar: "${exName}"`;
+        matchedLead = ex;
+        break;
+      }
+      if (email && exEmail && email === exEmail) {
+        conflictReason = `Email ${email} sudah dipakai: "${exName}"`;
+        matchedLead = ex;
+        break;
+      }
+      if ((waDigits && exWa && waDigits === exWa) || (phoneDigits.length >= 8 && exPhone.length >= 8 && phoneDigits === exPhone)) {
+        conflictReason = `Nomor telepon bentrok dengan "${exName}"`;
+        matchedLead = ex;
+        break;
+      }
+    }
+
+    return { ...lead, _conflict: conflictReason, _matched: matchedLead };
+  });
+}
+
 // --- Render Scraped Preview ---
-function renderResults() {
+async function renderResults() {
   const wrap = document.getElementById("resultsWrapper");
   const list = document.getElementById("resultsList");
   const count = document.getElementById("resultCount");
+  const summaryEl = document.getElementById("conflictSummary");
 
   if (!scrapedLeads.length) {
     wrap.classList.add("hidden");
     return;
   }
 
+  scrapedLeads = await runDoubleCheck(scrapedLeads);
+  const conflictCount = scrapedLeads.filter((l) => l._conflict).length;
+  const safeCount = scrapedLeads.length - conflictCount;
+
   wrap.classList.remove("hidden");
-  count.textContent = `${scrapedLeads.length} lead bersih siap disimpan`;
+  count.textContent = `${scrapedLeads.length} terdeteksi (${safeCount} baru, ${conflictCount} bentrok/duplikat)`;
+
+  if (conflictCount > 0) {
+    summaryEl.textContent = `Double Check: ${conflictCount} lead terindikasi sudah ada/bentrok di CRM dan akan dilewati jika centang aktif.`;
+    summaryEl.classList.remove("hidden");
+  } else {
+    summaryEl.classList.add("hidden");
+  }
+
   list.innerHTML = "";
 
   scrapedLeads.forEach((lead) => {
@@ -474,6 +566,11 @@ function renderResults() {
     item.className = "lead-item";
 
     let tags = "";
+    if (lead._conflict) {
+      tags += `<span class="tag tag-conflict">Bentrok: ${lead._conflict}</span>`;
+    } else {
+      tags += `<span class="tag tag-safe">Aman (Baru)</span>`;
+    }
     if (wa) tags += `<span class="tag tag-wa">WA: +${wa}</span>`;
     else if (lead.phone_number) tags += `<span class="tag tag-tel">Telp: ${lead.phone_number}</span>`;
     if (lead.email) tags += `<span class="tag tag-mail">${lead.email}</span>`;
@@ -482,7 +579,7 @@ function renderResults() {
     item.innerHTML = `
       <div class="lead-name">${lead.company_name || "(Tanpa Nama)"}</div>
       <div class="lead-sub">${lead.address || lead.job_title || lead.products || lead.website || ""}</div>
-      <div class="tag-row">${tags || '<span class="tag tag-addr">Kontak belum terdeteksi — coba Cek /contact</span>'}</div>
+      <div class="tag-row">${tags}</div>
     `;
     list.appendChild(item);
   });
@@ -634,10 +731,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const byName = new Map(existing.map((l) => [String(l.company_name || "").toLowerCase(), l]));
     const byWa = new Map(existing.filter((l) => l.phone_wa).map((l) => [String(l.phone_wa), l.company_name]));
 
-    let inserted = 0, updated = 0;
+    const skipConflicts = document.getElementById("chkSkipConflicts")?.checked;
+    let inserted = 0, updated = 0, skipped = 0;
     const cleanedPayload = [];
 
     for (const raw of scrapedLeads) {
+      if (skipConflicts && raw._conflict) {
+        skipped++;
+        continue;
+      }
       const comp = String(raw.company_name || "").trim();
       if (!comp) continue;
       const wa = extractMobileWA(raw.phone_number);
@@ -694,7 +796,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     await chrome.storage.local.set({ hots_leads: existing });
 
     let gsNote = "Webhook belum diset";
-    if (settings.webhookUrl) {
+    if (!cleanedPayload.length) {
+      gsNote = "Tidak ada data baru untuk dikirim";
+    } else if (settings.webhookUrl) {
       try {
         await fetch(settings.webhookUrl, {
           method: "POST",
@@ -713,7 +817,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    setStatus(`Tersimpan! CRM: +${inserted} baru, ${updated} update | GSheet: ${gsNote}`);
+    setStatus(`CRM: +${inserted} baru, ${updated} update, ${skipped} bentrok dilewati | GSheet: ${gsNote}`);
   });
 
   // Download Clean CSV

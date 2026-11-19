@@ -316,6 +316,27 @@ body {
 .tag-tel { background: var(--warn-soft); color: var(--warn-text); }
 .tag-mail { background: #eff6ff; color: #1d4ed8; }
 .tag-addr { background: #f1f5f9; color: #334155; }
+.tag-safe { background: var(--green-soft); color: var(--green); }
+.tag-conflict { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+.conflict-summary {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--warn-soft);
+  color: var(--warn-text);
+  border: 1px solid #fde68a;
+}
+
+.chk-skip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--muted);
+  cursor: pointer;
+}
 
 .kw-list {
   max-height: 240px;
