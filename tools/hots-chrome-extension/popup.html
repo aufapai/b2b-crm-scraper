@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HOTS Lead Scraper & CRM</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div>
+        <h1>HOTS Lead Hub</h1>
+        <p class="subtitle">Multi-Site Scraper &amp; Outreach CRM</p>
+      </div>
+      <span id="siteBadge" class="badge badge-neutral">Mendeteksi...</span>
+    </header>
+
+    <!-- Quick Launch Bar: Dashboard Standalone, Side Panel & Google Sheet -->
+    <section class="launch-bar">
+      <div class="launch-buttons" style="grid-template-columns: 1fr 1fr 1fr;">
+        <button id="btnOpenDashboard" class="btn btn-primary" title="Buka Dashboard CRM Penuh di Tab Chrome (Tanpa Python)">🖥️ Dashboard</button>
+        <button id="btnOpenSidePanel" class="btn btn-purple" title="Buka Dashboard di Side Panel (Samping WhatsApp Web / LinkedIn)">📌 Side Panel</button>
+        <button id="btnOpenGSheet" class="btn btn-emerald" title="Buka Google Sheet dengan Akun Terpilih">📊 GSheet</button>
+      </div>
+      <div class="account-row">
+        <label for="quickAuthUser">Akun Google / AI:</label>
+        <input id="quickAuthUser" type="text" placeholder="email@domain.com atau 0 / 1" title="Pilih akun Google (authuser) saat membuka Google Sheet">
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="scraper">🕷️ Scraper Multi-Site</button>
+      <button class="tab-btn" data-tab="settings">⚙️ Pengaturan &amp; Sync</button>
+    </nav>
+
+    <!-- TAB 1: SCRAPER -->
+    <main id="tab-scraper" class="tab-panel active">
+      <div class="control-row">
+        <select id="targetSegment">
+          <option value="Segmen A: Reseller & Toko K3">Segmen A: Reseller &amp; Toko K3</option>
+          <option value="Segmen A: Partner Portal & BUMN">Segmen A: Partner Portal / PIC</option>
+          <option value="Segmen B: Manufaktur Sepatu">Segmen B: Manufaktur Sepatu</option>
+          <option value="Riset Pasar SEA">Riset Harga / Pasar SEA</option>
+        </select>
+      </div>
+
+      <div class="action-grid">
+        <button id="btnScanPage" class="btn btn-blue">🔍 Scan Halaman Ini</button>
+        <button id="btnAiScan" class="btn btn-purple" title="Gunakan Gemini AI di backend lokal untuk mengenali halaman web apa saja">✨ AI Smart Scan</button>
+      </div>
+
+      <div id="statusMsg" class="status-box">Siap scan Google Maps, LinkedIn, Marketplace, atau Website PT.</div>
+
+      <div id="resultsWrapper" class="results-wrapper hidden">
+        <div class="results-header">
+          <span id="resultCount">0 leads terdeteksi</span>
+          <button id="btnClearResults" class="btn-link">Bersihkan</button>
+        </div>
+        <div id="resultsList" class="results-list"></div>
+
+        <div class="push-grid">
+          <button id="btnPushAll" class="btn btn-emerald">🚀 Simpan ke CRM &amp; Sheet</button>
+          <button id="btnDownloadCsv" class="btn btn-secondary">⬇️ CSV Bersih</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 2: SETTINGS -->
+    <main id="tab-settings" class="tab-panel">
+      <div class="form-group">
+        <label>URL Dashboard CRM Lokal</label>
+        <input id="setDashboardUrl" type="url" placeholder="http://localhost:5000">
+      </div>
+      <div class="form-group">
+        <label>URL Google Sheet Tracker (Google Drive)</label>
+        <input id="setGSheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../edit">
+      </div>
+      <div class="form-group">
+        <label>Akun Google Default (`authuser`: email atau index 0, 1, 2)</label>
+        <input id="setAuthUser" type="text" placeholder="contoh: aufa@hots.co.id atau 1">
+      </div>
+      <div class="form-group">
+        <label>Google Apps Script Webhook URL (Auto-Isi Sheet)</label>
+        <input id="setWebhookUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <div class="action-grid">
+        <button id="btnSaveSettings" class="btn btn-primary">💾 Simpan Settings</button>
+        <button id="btnPullDashboardSettings" class="btn btn-secondary">🔄 Sync dari CRM</button>
+      </div>
+      <div id="settingsStatus" class="status-box">Pengaturan disimpan lokal di browser &amp; bisa disinkronkan ke CRM.</div>
+    </main>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

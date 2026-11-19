@@ -1,0 +1,36 @@
+# ==========================================
+# PRIVACY & SECRETS (JANGAN PERNAH DI-PUSH)
+# ==========================================
+.env
+**/.env
+
+# Database & Data Leads Pribadi / Customer
+*.db
+*.sqlite
+*.sqlite3
+leads.db
+output/
+tools/hots-chrome-extension/seed_leads.json
+
+# Input URL / Daftar Target Pribadi & Dokumen Internal
+scraper/urls.csv
+scraper/urls_rekomendasi.csv
+scraper/gmaps_queries.txt
+plans/
+
+# Private Local Builds
+dist/*-local-private.zip
+
+# ==========================================
+# PYTHON VENV, CACHE & LARGE BINARIES
+# ==========================================
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+tools/OllamaSetup.exe
+tools/ollama_models/
+tools/ms-playwright/
+tools/tmp/

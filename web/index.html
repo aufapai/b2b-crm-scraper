@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HOTs Trading - Dual B2B CRM: Safety Footwear & SaaS e-Procurement</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Header -->
+    <header class="navbar">
+      <div class="nav-brand">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">HOTs Trading CRM</div>
+          <div class="brand-subtitle">Distributor Safety Footwear & SaaS e-Procurement | Kemitraan Ekspor Alas Kaki</div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <button id="btnOpenGSheet" class="btn btn-secondary" title="Hubungkan & Buka Google Sheet dengan Akun Pilihan">
+          📊 Google Sheet & Akun
+        </button>
+        <button id="btnOpenScraper" class="btn btn-emerald">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          🕷️ Scrape Leads AI
+        </button>
+        <button id="btnOpenTemplates" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Template Pitching
+        </button>
+        <button id="btnOpenExport" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export Data
+        </button>
+        <button id="btnOpenAddLead" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          + Tambah Lead
+        </button>
+      </div>
+    </header>
+
+    <!-- KPI Metric Cards (5 Cards Grid) -->
+    <section class="kpi-grid kpi-grid-5">
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Total Database Leads</span>
+          <span class="kpi-icon icon-blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-value" id="kpiTotalLeads">221</div>
+        <div class="kpi-desc">Total leads terdata</div>
+      </div>
+
+      <div class="kpi-card highlight-blue">
+        <div class="kpi-header">
+          <span class="kpi-title">Segmen A: Buyer Korporat</span>
+          <span class="kpi-icon icon-blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 21h18M3 7v14M21 7v14M6 7V3h12v4M9 11h2M9 15h2M13 11h2M13 15h2"/>
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-value blue-text" id="kpiSegA">31</div>
+        <div class="kpi-desc">Kontraktor, Tambang, Sawit, Industri</div>
+      </div>
+
+      <div class="kpi-card highlight-purple">
+        <div class="kpi-header">
+          <span class="kpi-title">Segmen B: Manufaktur Sepatu</span>
+          <span class="kpi-icon icon-purple">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 20h20M5 20V8l7 4V8l7 4v8"/>
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-value purple-text" id="kpiSegB">190</div>
+        <div class="kpi-desc">Pabrik & Sentra Mitra Ekspor</div>
+      </div>
+
+      <div class="kpi-card highlight-wa">
+        <div class="kpi-header">
+          <span class="kpi-title">WhatsApp Ready</span>
+          <span class="kpi-icon icon-emerald">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/>
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-value emerald-text" id="kpiTotalWa">54</div>
+        <div class="kpi-desc">Nomor HP valid & siap outreach</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Sudah Dihubungi</span>
+          <span class="kpi-icon icon-indigo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+          </span>
+        </div>
+        <div class="kpi-value" id="kpiContacted">0</div>
+        <div class="kpi-desc" id="kpiContactedPct">Progres outreach</div>
+      </div>
+    </section>
+
+    <!-- Main Content Panel -->
+    <main class="main-panel">
+      <!-- Target Segment Switcher Tabs -->
+      <div class="segment-tabs-container">
+        <button class="segment-tab-btn active" data-segment="" id="tabSegAll">
+          <span class="tab-label">Semua Target</span>
+          <span class="tab-badge" id="tabCountAll">221</span>
+        </button>
+        <button class="segment-tab-btn" data-segment="Segmen A: Buyer Korporat" id="tabSegA">
+          <span class="tab-icon">🏢</span>
+          <span class="tab-label">Segmen A: Buyer Korporat (Safety & SaaS)</span>
+          <span class="tab-badge badge-blue" id="tabCountA">31</span>
+        </button>
+        <button class="segment-tab-btn" data-segment="Segmen B: Manufaktur Sepatu" id="tabSegB">
+          <span class="tab-icon">🏭</span>
+          <span class="tab-label">Segmen B: Manufaktur Sepatu (Mitra Ekspor)</span>
+          <span class="tab-badge badge-purple" id="tabCountB">190</span>
+        </button>
+      </div>
+
+      <!-- Toolbar Filters -->
+      <div class="filter-toolbar">
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="searchInput" placeholder="Cari perusahaan, PIC, kebutuhan/produk, kota, email...">
+        </div>
+
+        <div class="filter-group">
+          <select id="filterBatchDay" title="Filter Jadwal Outreach 3 Hari / Sumber Extension">
+            <option value="">Semua Jadwal / Batch</option>
+            <option value="H1 Kam 19 Nov">H1 Kam 19 Nov (Kontak Hangat)</option>
+            <option value="H2 Jum 20 Nov">H2 Jum 20 Nov (Grosir Glodok/JKT)</option>
+            <option value="H3 Sen 23 Nov">H3 Sen 23 Nov (Luar Jakarta)</option>
+            <option value="Partner Portal">Partner Portal (12 BUMN & RS)</option>
+            <option value="Extension Scrape">Hasil Chrome Extension</option>
+          </select>
+
+          <select id="filterIndustry">
+            <option value="">Semua Sektor Industri</option>
+            <option value="Konstruksi & EPC">Konstruksi & EPC</option>
+            <option value="Pertambangan & Energi">Pertambangan & Energi</option>
+            <option value="Perkebunan & Sawit">Perkebunan & Sawit</option>
+            <option value="Logistik & Manufaktur Berat">Logistik & Manufaktur Berat</option>
+            <option value="Rumah Sakit & Fasilitas">Rumah Sakit & Fasilitas</option>
+            <option value="Manufaktur Alas Kaki">Manufaktur Alas Kaki (Sepatu)</option>
+          </select>
+
+          <select id="filterWilayah">
+            <option value="">Semua Wilayah</option>
+            <option value="Jakarta">Jakarta</option>
+            <option value="Bandung">Bandung (Cibaduyut)</option>
+            <option value="Sidoarjo">Sidoarjo</option>
+            <option value="Tangerang">Tangerang</option>
+            <option value="Surabaya">Surabaya</option>
+            <option value="Mojokerto">Mojokerto</option>
+            <option value="Jawa Tengah">Jawa Tengah</option>
+            <option value="Jawa Timur">Jawa Timur</option>
+            <option value="Sumatera">Sumatera</option>
+            <option value="Kalimantan">Kalimantan</option>
+            <option value="Sulawesi">Sulawesi</option>
+            <option value="Papua">Papua</option>
+          </select>
+
+          <select id="filterScale">
+            <option value="">Semua Skala</option>
+            <option value="Besar">Skala Besar / Tbk</option>
+            <option value="Menengah">Skala Menengah</option>
+            <option value="UMKM">UMKM</option>
+          </select>
+
+          <select id="filterStatus">
+            <option value="">Semua Status Outreach</option>
+            <option value="Belum Dihubungi">Belum Dihubungi</option>
+            <option value="Sudah Dihubungi">Sudah Dihubungi</option>
+            <option value="Tertarik Demo/Katalog">Tertarik Demo/Katalog ⭐</option>
+            <option value="Tertarik Ekspor">Tertarik Ekspor ⭐</option>
+            <option value="Follow-up Lagi">Follow-up Lagi</option>
+            <option value="Belum Tertarik">Belum Tertarik</option>
+          </select>
+
+          <button id="toggleWaOnly" class="btn-toggle" title="Tampilkan hanya leads dengan nomor WhatsApp valid">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/>
+            </svg>
+            Hanya WA Ready
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Header & Counter -->
+      <div class="table-info-bar">
+        <div class="result-counter">
+          Menampilkan <span id="displayCount" class="highlight-count">0</span> dari <span id="totalMatchCount">0</span> leads
+        </div>
+        <div class="sort-selector">
+          <label for="selectSort">Urutkan:</label>
+          <select id="selectSort">
+            <option value="score_desc">Skor Kualitas (Tertinggi)</option>
+            <option value="last_contacted">Terakhir Dihubungi</option>
+            <option value="name_asc">Nama Perusahaan (A - Z)</option>
+            <option value="status">Status Outreach</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Leads Data Table -->
+      <div class="table-wrapper">
+        <table class="leads-table">
+          <thead>
+            <tr>
+              <th width="4%">Skor</th>
+              <th width="24%">Perusahaan & Sektor</th>
+              <th width="12%">Segmen Target</th>
+              <th width="16%">PIC / Decision Maker</th>
+              <th width="16%">Kontak (WhatsApp / Email)</th>
+              <th width="14%">Kebutuhan / Produk</th>
+              <th width="10%">Status Outreach</th>
+              <th width="4%" class="text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTableBody">
+            <!-- Data dynamically populated via app.js -->
+          </tbody>
+        </table>
+
+        <div id="loadingIndicator" class="loading-state">
+          <div class="spinner"></div>
+          <span>Memuat data leads...</span>
+        </div>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <div class="empty-title">Tidak ada leads yang sesuai filter</div>
+          <div class="empty-desc">Coba sesuaikan filter segmen, industri, kata kunci pencarian, atau wilayah.</div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-bar" id="paginationBar">
+        <button id="btnPrevPage" class="btn btn-secondary btn-sm" disabled>&larr; Sebelumnya</button>
+        <span id="pageIndicator" class="page-indicator">Halaman 1</span>
+        <button id="btnNextPage" class="btn btn-secondary btn-sm">Berikutnya &rarr;</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: DUAL OUTREACH (WHATSAPP & EMAIL PITCHING) -->
+  <div id="modalOutreach" class="modal-overlay">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div class="modal-header-icon" id="outreachHeaderIcon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title" id="outreachModalTitle">Pitching Outreach: PT Indo Sukses Semesta</div>
+          <div class="modal-subtitle" id="outreachModalTargetInfo">Target: -</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalOutreach')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Target Summary Card -->
+        <div class="wa-target-summary">
+          <div class="target-item">
+            <span class="target-label">Perusahaan:</span>
+            <span class="target-val" id="targetCompany">-</span>
+          </div>
+          <div class="target-item">
+            <span class="target-label">Segmen & Sektor:</span>
+            <span class="target-val" id="targetSegment">-</span>
+          </div>
+          <div class="target-item">
+            <span class="target-label">Decision Maker:</span>
+            <span class="target-val" id="targetPic">-</span>
+          </div>
+          <div class="target-item">
+            <span class="target-label">Kontak WhatsApp / Telp:</span>
+            <span class="target-val mono-badge" id="targetPhone">-</span>
+          </div>
+          <div class="target-item">
+            <span class="target-label">Email:</span>
+            <span class="target-val" id="targetEmail">-</span>
+          </div>
+        </div>
+
+        <!-- Channel Selector -->
+        <div class="channel-switch-bar">
+          <button type="button" class="channel-tab-btn active" id="btnChannelWa" onclick="switchOutreachChannel('whatsapp')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/>
+            </svg>
+            Kanal WhatsApp
+          </button>
+          <button type="button" class="channel-tab-btn" id="btnChannelEmail" onclick="switchOutreachChannel('email')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            Kanal Email Pitching
+          </button>
+        </div>
+
+        <!-- Template Selector -->
+        <div class="form-group">
+          <label class="form-label" for="outreachTemplateSelect">Pilih Template Pitching:</label>
+          <select id="outreachTemplateSelect" class="form-control" onchange="onOutreachTemplateChange()">
+            <!-- Dynamic templates -->
+          </select>
+        </div>
+
+        <!-- Subject Line (Email Only) -->
+        <div class="form-group" id="groupEmailSubject" style="display: none;">
+          <div class="flex-between">
+            <label class="form-label" for="outreachSubject">Subjek Email:</label>
+            <button class="btn-link" type="button" onclick="copySubjectText()">Salin Subjek</button>
+          </div>
+          <input type="text" id="outreachSubject" class="form-control" placeholder="Subjek email...">
+        </div>
+
+        <!-- Message Preview -->
+        <div class="form-group">
+          <div class="flex-between">
+            <label class="form-label" for="outreachMessagePreview">Isi Pesan Pitching (Dapat Diedit):</label>
+            <button class="btn-link" type="button" onclick="copyOutreachMessage()">Salin Teks Pesan</button>
+          </div>
+          <textarea id="outreachMessagePreview" class="form-control message-box" rows="8"></textarea>
+          <div class="form-hint">
+            Variabel otomatis yang sudah disisipkan: nama perusahaan, PIC/decision maker, produk, kota, dan sektor industri.
+          </div>
+        </div>
+
+        <div class="status-auto-toggle">
+          <label class="checkbox-label">
+            <input type="checkbox" id="checkAutoMarkContacted" checked>
+            <span>Otomatis ubah status lead menjadi <strong>"Sudah Dihubungi"</strong> saat pesan dibuka / dikirim</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer" id="outreachModalFooter">
+        <button class="btn btn-secondary" onclick="closeModal('modalOutreach')">Tutup</button>
+        
+        <!-- WA Buttons -->
+        <div id="footerWaButtons" style="display: flex; gap: 8px;">
+          <button class="btn btn-emerald btn-lg" onclick="launchWhatsAppWeb()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/>
+            </svg>
+            Buka di WhatsApp Web Sekarang
+          </button>
+        </div>
+
+        <!-- Email Buttons -->
+        <div id="footerEmailButtons" style="display: none; gap: 8px;">
+          <button class="btn btn-blue btn-lg" onclick="launchEmailClient()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            Buka di Aplikasi Email (mailto)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT LEAD & CATATAN FOLLOW UP -->
+  <div id="modalEditLead" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="editModalTitle">Detail & Catatan Follow-Up</div>
+          <div class="modal-subtitle">Kelola informasi lead, target decision maker, dan catatan negosiasi</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalEditLead')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="formEditLead" onsubmit="saveLeadDetails(event)">
+          <input type="hidden" id="editLeadId">
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Segmen Target *</label>
+              <select id="editSegment" class="form-control" required>
+                <option value="Segmen A: Buyer Korporat">Segmen A: Buyer Korporat (Safety Shoes & SaaS)</option>
+                <option value="Segmen B: Manufaktur Sepatu">Segmen B: Manufaktur Sepatu (Mitra Ekspor)</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Sektor Industri *</label>
+              <select id="editIndustry" class="form-control" required>
+                <option value="Konstruksi & EPC">Konstruksi & EPC</option>
+                <option value="Pertambangan & Energi">Pertambangan & Energi</option>
+                <option value="Perkebunan & Sawit">Perkebunan & Sawit</option>
+                <option value="Logistik & Manufaktur Berat">Logistik & Manufaktur Berat</option>
+                <option value="Rumah Sakit & Fasilitas">Rumah Sakit & Fasilitas</option>
+                <option value="Manufaktur Alas Kaki">Manufaktur Alas Kaki (Sepatu)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Nama Perusahaan *</label>
+              <input type="text" id="editCompanyName" class="form-control" required>
+            </div>
+            <div class="form-group" style="width: 140px;">
+              <label class="form-label">Skala</label>
+              <select id="editScale" class="form-control">
+                <option value="Besar">Besar / Tbk</option>
+                <option value="Menengah">Menengah</option>
+                <option value="UMKM">UMKM</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Nama PIC / Decision Maker</label>
+              <input type="text" id="editContactPerson" class="form-control" placeholder="Contoh: Bpk. Bambang / Tim Procurement">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Jabatan PIC</label>
+              <input type="text" id="editJobTitle" class="form-control" placeholder="Head of Procurement / HSE Manager">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Nomor WhatsApp (HP Seluler)</label>
+              <input type="text" id="editPhoneWa" class="form-control" placeholder="Contoh: 08123456789 atau 628...">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">No. Telepon Kantor (Asal)</label>
+              <input type="text" id="editPhoneRaw" class="form-control" placeholder="Telepon kantor / kabel">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Wilayah</label>
+              <input type="text" id="editWilayah" class="form-control" placeholder="Jakarta, Bandung, Sidoarjo, dll.">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Lokasi / Kota</label>
+              <input type="text" id="editLocation" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Kebutuhan APD / Produk Unggulan</label>
+            <input type="text" id="editProducts" class="form-control" placeholder="Sepatu Safety K3 SNI, Rubber Boots, dll.">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Email Procurement / Perusahaan</label>
+              <input type="text" id="editEmail" class="form-control">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Website / Portal e-Proc</label>
+              <input type="text" id="editWebsite" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Alamat Lengkap</label>
+            <textarea id="editAddress" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Status Outreach *</label>
+              <select id="editStatus" class="form-control highlight-select">
+                <option value="Belum Dihubungi">Belum Dihubungi</option>
+                <option value="Sudah Dihubungi">Sudah Dihubungi</option>
+                <option value="Tertarik Demo/Katalog">Tertarik Demo/Katalog ⭐</option>
+                <option value="Tertarik Ekspor">Tertarik Ekspor ⭐ (Hot Opportunity)</option>
+                <option value="Follow-up Lagi">Follow-up Lagi</option>
+                <option value="Belum Tertarik">Belum Tertarik</option>
+              </select>
+            </div>
+            <div class="form-group" style="width: 140px;">
+              <label class="form-label">Kategori Lead</label>
+              <select id="editKategori" class="form-control">
+                <option value="Hot">Hot</option>
+                <option value="Warm">Warm</option>
+                <option value="Cold">Cold</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Catatan Diskusi / Follow-Up</label>
+            <textarea id="editNotes" class="form-control" rows="3" placeholder="Contoh: Sudah dikontak via WA/Email, tertarik melihat demo modul PO e-procurement dan katalog AP Boots..."></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modalEditLead')">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TAMBAH LEAD BARU -->
+  <div id="modalAddLead" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">+ Tambah Lead B2B Baru</div>
+          <div class="modal-subtitle">Tambahkan data calon buyer korporat atau mitra manufaktur baru</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalAddLead')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="formAddLead" onsubmit="submitNewLead(event)">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Segmen Target *</label>
+              <select id="addSegment" class="form-control" required>
+                <option value="Segmen A: Buyer Korporat">Segmen A: Buyer Korporat (Safety Shoes & SaaS)</option>
+                <option value="Segmen B: Manufaktur Sepatu">Segmen B: Manufaktur Sepatu (Mitra Ekspor)</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Sektor Industri *</label>
+              <select id="addIndustry" class="form-control" required>
+                <option value="Konstruksi & EPC">Konstruksi & EPC</option>
+                <option value="Pertambangan & Energi">Pertambangan & Energi</option>
+                <option value="Perkebunan & Sawit">Perkebunan & Sawit</option>
+                <option value="Logistik & Manufaktur Berat">Logistik & Manufaktur Berat</option>
+                <option value="Rumah Sakit & Fasilitas">Rumah Sakit & Fasilitas</option>
+                <option value="Manufaktur Alas Kaki">Manufaktur Alas Kaki (Sepatu)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Nama Perusahaan *</label>
+              <input type="text" id="addCompanyName" class="form-control" required placeholder="PT / CV / BUMN...">
+            </div>
+            <div class="form-group" style="width: 140px;">
+              <label class="form-label">Skala</label>
+              <select id="addScale" class="form-control">
+                <option value="Besar">Besar / Tbk</option>
+                <option value="Menengah">Menengah</option>
+                <option value="UMKM">UMKM</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Nama PIC / Decision Maker</label>
+              <input type="text" id="addContactPerson" class="form-control" placeholder="Nama PIC / Tim Procurement">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Jabatan PIC</label>
+              <input type="text" id="addJobTitle" class="form-control" placeholder="Head of Procurement / HSE Manager">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Nomor WhatsApp *</label>
+              <input type="text" id="addPhoneWa" class="form-control" required placeholder="08123456789 atau 628...">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Wilayah</label>
+              <input type="text" id="addWilayah" class="form-control" placeholder="Jakarta, Bandung, Sidoarjo, dll.">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Kebutuhan APD / Spesifikasi Produk</label>
+            <input type="text" id="addProducts" class="form-control" placeholder="Sepatu Safety K3 SNI, AP Boots, Steel Toe Boots...">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Email</label>
+              <input type="text" id="addEmail" class="form-control" placeholder="procurement@perusahaan.com">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Kota / Lokasi</label>
+              <input type="text" id="addLocation" class="form-control" placeholder="Kota / Kantor Pusat">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Alamat Lengkap</label>
+            <textarea id="addAddress" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('modalAddLead')">Batal</button>
+            <button type="submit" class="btn btn-primary">+ Simpan Lead</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EXPORT DATA -->
+  <div id="modalExport" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-header-icon export-bg">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">Export Database Leads B2B</div>
+          <div class="modal-subtitle">Unduh database untuk tim sales, outreach campaign, atau analisis CRM</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalExport')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Format File:</label>
+          <div class="radio-cards">
+            <label class="radio-card">
+              <input type="radio" name="exportFmt" value="xlsx" checked>
+              <div class="radio-card-content">
+                <span class="card-title">Microsoft Excel (.xlsx)</span>
+                <span class="card-desc">Format tabel rapi lengkap dengan sheet & kolom terstruktur</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="exportFmt" value="csv">
+              <div class="radio-card-content">
+                <span class="card-title">CSV UTF-8 (.csv)</span>
+                <span class="card-desc">Kompatibel untuk impor ke Mailjet, Lemlist, atau Apollo</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cakupan Data:</label>
+          <div class="radio-cards">
+            <label class="radio-card">
+              <input type="radio" name="exportScope" value="all" checked>
+              <div class="radio-card-content">
+                <span class="card-title">Semua Leads di Database</span>
+                <span class="card-desc">Seluruh leads (Buyer Korporat + Manufaktur Sepatu)</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="exportScope" value="seg_a">
+              <div class="radio-card-content">
+                <span class="card-title">🏢 Hanya Segmen A: Buyer Korporat</span>
+                <span class="card-desc">Target Pengadaan Safety Shoes & SaaS</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="exportScope" value="seg_b">
+              <div class="radio-card-content">
+                <span class="card-title">🏭 Hanya Segmen B: Manufaktur Sepatu</span>
+                <span class="card-desc">Produsen alas kaki mitra ekspor</span>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="exportScope" value="wa_only">
+              <div class="radio-card-content">
+                <span class="card-title">Hanya WhatsApp Ready</span>
+                <span class="card-desc">Nomor HP seluler valid untuk WhatsApp marketing</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalExport')">Batal</button>
+        <button class="btn btn-primary" onclick="triggerDownloadExport()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Unduh File Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KELOLA TEMPLATE PITCHING -->
+  <div id="modalTemplates" class="modal-overlay">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Kelola Template Pitching (WhatsApp & Email)</div>
+          <div class="modal-subtitle">Sesuaikan pesan penawaran distribusi safety shoes, SaaS, dan kemitraan ekspor</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalTemplates')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="template-list-container" id="templateList">
+          <!-- Loaded dynamically -->
+        </div>
+
+        <div class="template-variable-hint">
+          <strong>Variabel otomatis yang tersedia:</strong>
+          <code>{company_name}</code> (Nama perusahaan), <code>{contact_person}</code> (Nama PIC), <code>{job_title}</code> (Jabatan), <code>{products}</code> (Kebutuhan/Produk), <code>{location}</code> (Kota), <code>{industry}</code> (Sektor).
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeModal('modalTemplates')">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AI WEB SCRAPER -->
+  <div id="modalScraper" class="modal-overlay">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div class="modal-header-icon" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); color: #fff;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">🕷️ Scrape Leads B2B Cerdas (Gemini AI)</div>
+          <div class="modal-subtitle">Ekstrak data profil perusahaan, kontak PIC, dan kebutuhan safety shoes otomatis langsung dari web</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalScraper')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Scrape Source Selector Cards -->
+        <div class="form-group">
+          <label class="form-label">Metode Pengumpulan Data:</label>
+          <div class="channel-switch-bar">
+            <button type="button" class="channel-tab-btn active" id="tabScrapeUrl" onclick="switchScrapeMode('url')">
+              🌐 Scrape URL / Direktori Web
+            </button>
+            <button type="button" class="channel-tab-btn" id="tabScrapeQuick" onclick="switchScrapeMode('quick')">
+              ⚡ Database Korporat Tier-1 (Quick Sync)
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 1: Scrape Custom URL -->
+        <div id="sectionScrapeUrl">
+          <div class="form-group">
+            <label class="form-label" for="scrapeUrlInput">URL Target Web / Direktori B2B *</label>
+            <input type="url" id="scrapeUrlInput" class="form-control" placeholder="https://contoh-asosiasi-kontraktor.or.id/anggota..." required>
+            <div class="form-hint">
+              Contoh yang bisa discrape: direktori kontraktor (GAPENSI/AKI), daftar perusahaan tambang/sawit, web profil perusahaan, atau portal tender.
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label" for="scrapeIndustrySelect">Target Sektor Industri *</label>
+              <select id="scrapeIndustrySelect" class="form-control">
+                <option value="Konstruksi & EPC">Konstruksi & EPC (EPC, Kontraktor Infrastruktur & Gedung)</option>
+                <option value="Pertambangan & Energi">Pertambangan & Energi (Batubara, Nikel, Migas, Emas)</option>
+                <option value="Perkebunan & Sawit">Perkebunan & Sawit (Kelapa Sawit, PKS, Pabrik Pangan F&B)</option>
+                <option value="Logistik & Manufaktur Berat">Logistik & Manufaktur Berat (Baja, Semen, Maritim, Pelabuhan)</option>
+                <option value="Rumah Sakit & Fasilitas">Rumah Sakit & Fasilitas (Kesehatan, Farmasi, RS Swasta)</option>
+                <option value="Manufaktur Alas Kaki">Manufaktur Alas Kaki (Pabrik Sepatu Mitra Ekspor)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="form-group">
+            <label class="form-label">Contoh Sumber Rekomendasi (Klik untuk isi URL otomatis):</label>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button type="button" class="btn-link" style="font-size:0.78rem; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px;" onclick="setScrapePreset('https://www.gapensi.or.id', 'Konstruksi & EPC')">GAPENSI (Kontraktor)</button>
+              <button type="button" class="btn-link" style="font-size:0.78rem; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px;" onclick="setScrapePreset('https://apbi-icma.org', 'Pertambangan & Energi')">APBI (Tambang Batubara)</button>
+              <button type="button" class="btn-link" style="font-size:0.78rem; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px;" onclick="setScrapePreset('https://gapki.id', 'Perkebunan & Sawit')">GAPKI (Kelapa Sawit)</button>
+              <button type="button" class="btn-link" style="font-size:0.78rem; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px;" onclick="setScrapePreset('https://inaexport.id', 'Manufaktur Alas Kaki')">InaExport (Produsen Sepatu)</button>
+            </div>
+          </div>
+
+          <div style="margin-top: 14px;">
+            <button type="button" id="btnRunScraper" class="btn btn-emerald btn-lg" style="width: 100%;" onclick="runLiveScraper()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Mulai Ekstraksi AI & Simpan ke Database
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 2: Quick Sync -->
+        <div id="sectionScrapeQuick" style="display: none;">
+          <div class="quick-sync-card" style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span style="font-weight: 700; color: #fff; font-size: 1rem;">🏢 Database Master 31 Korporat Tier-1 Indonesia</span>
+              <span class="tab-badge badge-blue">Ready-to-Sync</span>
+            </div>
+            <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+              Menyinkronkan data perusahaan kontraktor BUMN/Swasta (WIKA, Adhi Karya, PT PP, Hutama Karya, Total BP), tambang raksasa (Freeport, Vale, Bukit Asam, ANTAM, PAMA), agribisnis sawit (Astra Agro, Sinarmas Agri, Mayora), serta industri semen dan baja langsung ke database CRM.
+            </p>
+            <button type="button" class="btn btn-blue btn-lg" onclick="runQuickSyncCorporate()">
+              ⚡ Sinkronkan / Perbarui Database Korporat Sekarang
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading State Indicator -->
+        <div id="scrapeProgressIndicator" style="display: none; margin-top: 20px; padding: 20px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); text-align: center;">
+          <div class="spinner" style="margin: 0 auto 12px;"></div>
+          <div id="scrapeProgressText" style="font-weight: 700; color: #fff; font-size: 0.95rem;">Sedang mengunduh halaman dan mengekstrak data profil via Gemini AI...</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">Proses ekstraksi AI membutuhkan ~5–12 detik tergantung ukuran halaman.</div>
+        </div>
+
+        <!-- Scraper Results Box -->
+        <div id="scrapeResultsContainer" style="display: none; margin-top: 20px;">
+          <div class="flex-between" style="margin-bottom: 10px;">
+            <span style="font-weight: 700; color: #fff; font-size: 0.92rem;">Hasil Ekstraksi Terakhir:</span>
+            <span id="scrapeResultBadge" class="tab-badge badge-blue">0 Leads</span>
+          </div>
+          <div id="scrapeResultsList" style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+            <!-- Dynamic result cards -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalScraper')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GOOGLE SHEET & AKUN SYNC -->
+  <div id="modalGSheet" class="modal-overlay">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <div>
+          <h3>📊 Integrasi Google Sheet & Pilihan Akun</h3>
+          <p class="modal-subtitle">Buka Google Sheet dengan akun Google/AI pilihan & sinkronkan leads secara langsung</p>
+        </div>
+        <button class="btn-close" onclick="closeModal('modalGSheet')">&times;</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
+        <div class="form-group">
+          <label>URL Google Sheet Tracker (Google Drive)</label>
+          <input type="url" id="gsheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/xxxx/edit">
+        </div>
+        <div class="form-group">
+          <label>Akun Google yang Dipakai untuk Membuka Sheet (Email atau Index `0`, `1`, `2`)</label>
+          <input type="text" id="gsheetAuthUserInput" placeholder="contoh: aufa@hots.co.id atau 0 atau 1">
+          <small style="color: var(--text-muted); font-size: 0.78rem;">Tips: Masukkan email akun Google/AI yang kamu pilih, atau angka 0 (akun utama), 1 (akun kedua) agar otomatis terbuka di akun yang benar.</small>
+        </div>
+        <div class="form-group">
+          <label>Google Apps Script Webhook URL (untuk Auto-Sync / Isi Sheet Otomatis)</label>
+          <input type="url" id="gsheetWebhookInput" placeholder="https://script.google.com/macros/s/xxxx/exec">
+          <small style="color: var(--text-muted); font-size: 0.78rem;">Copy-paste script dari file <code>tools/google_apps_script_sync.gs</code> ke Extensions &gt; Apps Script di Google Sheet kamu, lalu Deploy sebagai Web App.</small>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;">
+          <button id="btnSaveGSheetSettings" class="btn btn-primary">💾 Simpan Pengaturan</button>
+          <button id="btnLaunchGSheet" class="btn btn-emerald">🔗 Buka Google Sheet (Akun Terpilih)</button>
+          <button id="btnPushToGSheet" class="btn btn-secondary">🔄 Sync Leads ke Sheet</button>
+        </div>
+        <div id="gsheetSyncResult" style="font-size:0.85rem; color: var(--text-muted);"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modalGSheet')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastNotification" class="toast">Notifikasi</div>
+
+  <script src="app.js"></script>
+</body>
+</html>

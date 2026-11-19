@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "B2B CRM Scraper - Standalone Dashboard & Multi-Site Lead Hub",
+  "version": "1.0.0",
+  "description": "Dashboard CRM 1-Klik WhatsApp (Tab & Side Panel) + Multi-Site Lead Scraper (Google Maps, LinkedIn PIC, Marketplace, Web PT) + Auto-Sync Google Sheet Multi-Akun.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs",
+    "sidePanel",
+    "unlimitedStorage",
+    "identity",
+    "identity.email"
+  ],
+  "host_permissions": [
+    "http://localhost:5000/*",
+    "http://127.0.0.1:5000/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*"
+  ],
+  "side_panel": {
+    "default_path": "dashboard.html"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "HOTS Lead Hub & CRM"
+  }
+}

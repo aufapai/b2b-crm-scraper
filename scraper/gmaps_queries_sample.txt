@@ -1,0 +1,22 @@
+# Daftar kata kunci pencarian Google Maps untuk ekspansi Leads HOTs Trading
+# Hapus tanda '#' pada baris yang ingin discrape
+
+# --- SEGMEN B: SENTRA PABRIK & PRODUSEN SEPATU / SANDAL ---
+pabrik sepatu Cibaduyut Bandung
+pengrajin sepatu kulit Cibaduyut
+pabrik sepatu sandal Sidoarjo
+produsen sepatu Mojokerto
+pabrik sepatu Tangerang
+sentra kulit Sukaregang Garut
+pabrik sepatu Pasuruan
+pabrik sepatu safety Mojokerto
+
+# --- SEGMEN A: BUYER KORPORAT / KONTRAKTOR / TAMBANG / SAWIT ---
+kontraktor tambang Samarinda
+kontraktor tambang Balikpapan
+perusahaan perkebunan sawit Pekanbaru
+kontraktor EPC Cilegon
+perusahaan logistik pergudangan Cikarang
+distributor safety equipment Surabaya
+distributor safety tools Jakarta
+

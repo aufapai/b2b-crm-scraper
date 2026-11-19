@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HOTS Trading CRM - Standalone Chrome Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Top Header -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-badge">HOTS</div>
+        <div>
+          <h1>HOTS Trading CRM</h1>
+          <p class="subtitle">Standalone Chrome Dashboard • 1-Klik WhatsApp • Auto-Sync Google Sheet</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="profileBadge" class="profile-badge" title="Klik untuk ganti akun Google atau atur koneksi Google Sheet">
+          <div class="avatar-wrap">
+            <span id="profileInitial" class="avatar-circle">G</span>
+            <span id="profileDot" class="status-dot dot-warn"></span>
+          </div>
+          <div class="profile-info">
+            <span id="profileEmailLabel" class="profile-email">Belum ada akun</span>
+            <span id="profileConnStatus" class="profile-status">GSheet belum terhubung</span>
+          </div>
+        </button>
+        <button id="btnOpenGSheet" class="btn btn-emerald">📊 Buka GSheet</button>
+        <button id="btnSyncGSheet" class="btn btn-blue">🔄 Sync ke Sheet</button>
+        <button id="btnExportCsv" class="btn btn-secondary">⬇️ Export CSV</button>
+        <label class="btn btn-secondary" style="cursor:pointer;">
+          ⬆️ Import CSV
+          <input id="inputImportCsv" type="file" accept=".csv" style="display:none;">
+        </label>
+        <button id="btnOpenSettings" class="btn btn-secondary">⚙️</button>
+      </div>
+    </header>
+
+    <!-- KPI Cards -->
+    <section class="kpi-row">
+      <div class="kpi-card">
+        <span class="kpi-label">Total Leads</span>
+        <span class="kpi-val" id="kpiTotal">0</span>
+      </div>
+      <div class="kpi-card kpi-green">
+        <span class="kpi-label">WA Valid Siap Chat</span>
+        <span class="kpi-val" id="kpiWa">0</span>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <span class="kpi-label">Jadwal 3 Hari (H1–H3)</span>
+        <span class="kpi-val" id="kpiOutreach">0</span>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <span class="kpi-label">Sudah Dihubungi / Terkirim</span>
+        <span class="kpi-val" id="kpiContacted">0</span>
+      </div>
+    </section>
+
+    <!-- Quick Batch Pills -->
+    <section class="pill-bar" id="batchPills">
+      <button class="filter-pill active" data-batch="">Semua Data</button>
+      <button class="filter-pill" data-batch="H1 Kam 19 Nov">🔥 H1 Kam 19 Nov</button>
+      <button class="filter-pill" data-batch="H2 Jum 20 Nov">🏪 H2 Jum 20 Nov</button>
+      <button class="filter-pill" data-batch="H3 Sen 23 Nov">🗺️ H3 Sen 23 Nov</button>
+      <button class="filter-pill" data-batch="Partner Portal">🏢 Partner Portal (12)</button>
+      <button class="filter-pill" data-batch="Extension Scrape">🕷️ Hasil Extension</button>
+    </section>
+
+    <!-- Search, Filters & Active WA Template Selector -->
+    <section class="toolbar">
+      <input id="searchInput" type="text" class="search-input" placeholder="Cari perusahaan, PIC, kota, nomor HP, catatan...">
+      <select id="filterSegment">
+        <option value="">Semua Segmen</option>
+        <option value="Segmen A: Reseller & Toko K3">Reseller &amp; Toko K3</option>
+        <option value="Segmen A: Partner Portal & BUMN">Partner Portal &amp; BUMN</option>
+        <option value="Segmen A: Buyer Korporat">Buyer Korporat</option>
+        <option value="Segmen B: Manufaktur Sepatu">Manufaktur Sepatu</option>
+        <option value="Riset Pasar SEA">Riset Pasar SEA</option>
+      </select>
+      <select id="filterStatus">
+        <option value="">Semua Status</option>
+        <option value="Belum Dihubungi">Belum Dihubungi</option>
+        <option value="Terkirim">Terkirim</option>
+        <option value="Dibalas">Dibalas</option>
+        <option value="Butuh jelas">Butuh jelas</option>
+        <option value="SPH dikirim">SPH dikirim</option>
+        <option value="Tidak tertarik">Tidak tertarik</option>
+      </select>
+      <select id="activeTemplate" title="Template pesan untuk tombol 1-Klik Buka WA">
+        <option value="T1">Template: T1 (Izin Dulu - Tanpa Katalog)</option>
+        <option value="T2">Template: T2 (Follow Up Kontak Hangat)</option>
+        <option value="T3">Template: T3 (Khusus GiziNow)</option>
+        <option value="MFG">Template: Kemitraan Manufaktur Sepatu</option>
+      </select>
+      <label class="wa-toggle">
+        <input type="checkbox" id="chkWaOnly"> Hanya WA Valid
+      </label>
+    </section>
+
+    <div class="status-strip">
+      <span id="resultSummary">Memuat data...</span>
+      <span id="syncStatusText" class="muted"></span>
+    </div>
+
+    <!-- Leads Cards / Table Container -->
+    <main id="leadsContainer" class="leads-list"></main>
+
+    <!-- Pagination -->
+    <footer class="pagination">
+      <button id="btnPrev" class="btn btn-secondary">← Sebelumnya</button>
+      <span id="pageInfo">Halaman 1</span>
+      <button id="btnNext" class="btn btn-secondary">Berikutnya →</button>
+    </footer>
+  </div>
+
+  <!-- Modal Settings -->
+  <div id="modalSettings" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>⚙️ Pengaturan Google Sheet &amp; Data CRM</h3>
+        <button id="btnCloseSettings" class="btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detected-account-box">
+          <div>
+            <div style="font-size:11px; color:#94a3b8;">Akun Profil Chrome Terdeteksi:</div>
+            <div id="detectedChromeEmail" style="font-weight:700; color:#34d399; font-size:12.5px;">Mendeteksi...</div>
+          </div>
+          <button id="btnUseDetectedAccount" class="btn btn-secondary btn-sm">Pakai Akun Ini</button>
+        </div>
+        <div class="form-group">
+          <label>URL Google Sheet Tracker (Google Drive)</label>
+          <input id="setGSheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../edit">
+        </div>
+        <div class="form-group">
+          <label>Akun Google / AI yang Terhubung (Email atau Index 0, 1, 2)</label>
+          <input id="setAuthUser" type="text" placeholder="contoh: aufa@hots.co.id atau 0">
+        </div>
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label>Google Apps Script Webhook URL (Auto-Sync Sheet)</label>
+            <button id="btnCopyGsScript" class="btn btn-blue btn-sm" type="button">📋 1-Klik Copy Kode .gs</button>
+          </div>
+          <input id="setWebhookUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+          <small style="color:#94a3b8; font-size:11px;">Cukup sekali: Klik <b>Copy Kode .gs</b> → di Google Sheet buka <b>Extensions → Apps Script</b> → Paste → <b>Deploy Web App (Anyone)</b> → tempel URL-nya di sini.</small>
+        </div>
+        <div class="modal-actions">
+          <button id="btnSaveSettings" class="btn btn-primary">💾 Simpan Pengaturan</button>
+          <button id="btnResetSeed" class="btn btn-danger" title="Muat ulang data awal lokal">🔄 Reset Data Awal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="dashboard.js"></script>
+</body>
+</html>
