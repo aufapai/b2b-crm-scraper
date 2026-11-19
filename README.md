@@ -1,6 +1,13 @@
-# B2B CRM Scraper — Standalone Chrome Extension & Multi-Site Lead Hub (v1.1.0)
+# B2B CRM Scraper — Standalone Chrome Extension & Multi-Site Lead Hub (v1.1.1)
 
 CRM B2B dan alat akuisisi lead profesional yang berjalan **100% langsung di Google Chrome** (Tab Fullscreen & Chrome Side Panel) tanpa perlu menyalakan server Python/CMD. Dirancang dengan identitas visual industrial B2B (HOTS Trading — Industrial Navy & Safety Amber, Light/Dark mode) namun **fleksibel untuk segala jenis bisnis B2B** melalui Onboarding Wizard & Custom Segments.
+
+---
+
+## 🎬 Video Tutorial Demo (v1.1.1)
+
+Tonton panduan lengkap alur penggunaan (Onboarding Setup → Rekomendasi Keyword B2B → Hubungi via WA & Draft Gmail → Double Check Anti-Bentrok → Popup Scraper):
+* **Video Demo (WebM 720p):** [`docs/media/tutorial-b2b-crm-v1.1.1.webm`](docs/media/tutorial-b2b-crm-v1.1.1.webm)
 
 ---
 
@@ -35,7 +42,7 @@ Repository ini **hanya berisi source code, template, dan dokumentasi**. Seluruh 
 ## 📦 Tutorial Instalasi Versi Pertama
 
 ### Opsi A — Menggunakan File Packed (`.zip`) *(Paling Praktis)*
-1. Download file rilis bersih: **`dist/b2b-crm-extension-v1.1.0-public.zip`**.
+1. Download file rilis bersih: **`dist/b2b-crm-extension-v1.1.1-public.zip`**.
 2. Ekstrak ke satu folder permanen di komputer kamu (misal `C:\Apps\b2b-crm-extension\`).
 3. Buka Google Chrome → ketik `chrome://extensions` di address bar.
 4. Aktifkan **Developer mode** (pojok kanan atas).
@@ -65,6 +72,35 @@ Lalu di `chrome://extensions` (Developer mode ON) → **Load unpacked** → pili
    - Untuk website perusahaan (misal kontraktor/distributor di Indonesia, Vietnam, Thailand), cukup buka websitenya → klik ikon extension → **Deep Scan Halaman Ini** (atau **Cek /contact**) → **Simpan ke CRM & Sheet**.
 4. **Follow-Up via WhatsApp atau Draft Gmail:**
    - Di Dashboard, klik **Hubungi (WA / Gmail)** pada kartu lead → pilih saluran (**WhatsApp Web** atau **Draft Gmail**), pilih template, edit bila perlu, lalu klik buka!
+
+---
+
+## 📝 Contoh Setup Nyata (Siap Ikuti)
+
+Berikut contoh pengisian konfigurasi dari nol sampai siap jalan:
+
+### 1. Contoh Pengisian Onboarding Wizard (Setup Profil)
+| Kolom | Contoh Isian (HOTS Trading) | Contoh Isian (B2B Umum / Jasa) |
+|---|---|---|
+| **Nama Perusahaan / Brand** | `HOTS Trading (PT Indo Sukses Semesta)` | `PT Mitra Solusi Industri` |
+| **Nama Pengirim** | `Aufa` | `Budi (Sales Manager)` |
+| **Fokus Industri B2B** | `Safety Footwear, APD & K3 Industri` | `Konstruksi, Kontraktor & EPC` |
+| **Target Daerah / Negara** | `Jakarta, Surabaya, Balikpapan, HCMC, Bangkok` | `Jakarta, Cikarang, Semarang, Makassar` |
+| **Daftar Segmen Custom** | `Segmen A: Reseller & Toko K3`<br>`Segmen A: Partner Portal & BUMN`<br>`Riset Pasar SEA` | `Kontraktor EPC Tier-1`<br>`Subkontraktor Proyek`<br>`Vendor Material` |
+
+### 2. Contoh Pengisian Koneksi Google Sheet & Gmail
+* **URL Google Sheet Tracker:** `https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/edit`
+* **Akun Google Terhubung (`authuser`):** `nama.anda@gmail.com` *(atau `0` untuk akun utama Chrome, `1` untuk akun kedua)*
+* **Webhook URL (Apps Script v1.1):** `https://script.google.com/macros/s/AKfycb.../exec`
+  * *Catatan:* Hasilnya saat klik **Buka GSheet** atau **Hubungi → Draft Gmail**, Chrome otomatis membuka Google Sheet & Draft Gmail di akun `nama.anda@gmail.com` tersebut!
+
+### 3. Contoh Alur Scrape Website B2B + Double Check Anti-Bentrok
+1. Buka website target (misal `https://newtecons.vn/` atau `https://www.centralcons.vn/`).
+2. Klik ikon Extension → pilih segmen tujuan → klik **Deep Scan Halaman Ini** (atau **Cek `/contact`** jika kontak ada di halaman Contact Us).
+3. Extension otomatis mengekstrak **Email**, **Nomor Telepon (ID & ASEAN)**, dan **Alamat**, lalu langsung menampilkan hasil **Double Check**:
+   * **Aman (Baru)** → siap disimpan.
+   * **Bentrok: [Nama PT]** → otomatis dilewati jika centang *"Otomatis lewati lead yang bentrok"* aktif.
+4. Klik **Simpan ke CRM & Sheet** → data masuk ke Dashboard & Google Sheet sekaligus.
 
 ---
 
